@@ -11,28 +11,38 @@
 
 ## 🛒 Flujo del Viajero (Cliente)
 
-- [ ] **CU-01: Buscar rutas y horarios disponibles**
-  - *Notas:* Pendiente de implementar filtrado por origen, destino y fecha.
-- [ ] **CU-02: Seleccionar asiento y reservar**
-  - *Notas:* Pendiente de implementar el bloqueo concurrente para evitar sobreventa.
-- [ ] **CU-03: Realizar pago (QR, transferencias)**
-  - *Notas:* Pendiente de emitir el evento hacia Redis tras pago exitoso.
-- [ ] **CU-05: Gestionar perfil de usuario**
-  - *Notas:* Pendiente CRUD de actualización de datos.
-- [ ] **CU-06: Cancelar reserva**
-  - *Notas:* Pendiente lógica de liberación de asientos.
-- [ ] **CU-07: Consultar historial de viajes**
-  - *Notas:* Pendiente consulta filtrada por ID de usuario logueado.
+- [x] **CU-01: Buscar rutas y horarios disponibles**
+  - *Resumen:* Implementado con entidades JPA `RutaDestino`, `Flota` y `ViajeProgramado`; repositorio `ViajeProgramadoRepository`; servicio `ViajeConsultaService`; DTO `ViajeDisponibleResponse`; resolver GraphQL `ViajeQueryResolver`; y schema `graphql/schema.graphqls`.
+  - *Consulta GraphQL:* `buscarRutasYHorariosDisponibles(origen, destino, fecha)`.
+- [x] **CU-02: Seleccionar asiento y reservar**
+  - *Resumen:* Implementado con entidades JPA `Usuario`, `Reserva` y `BoletoAsiento`; repositorios `UsuarioRepository`, `ReservaRepository` y `BoletoAsientoRepository`; bloqueo pesimista en `ViajeProgramadoRepository`; servicio `ReservaAsientoService`; resolver GraphQL `ReservaAsientoResolver`; y ampliación de `graphql/schema.graphqls`.
+  - *Consulta GraphQL:* `obtenerMapaAsientos(idViaje)`.
+  - *Mutación GraphQL:* `seleccionarAsientoYReservar(idUsuario, idViaje, numeroAsiento, nombrePasajero, tipoPasajero)`.
+- [x] **CU-03: Realizar pago (QR, transferencias)**
+  - *Resumen:* Implementado con entidad JPA `Pago`; repositorio `PagoRepository`; bloqueo pesimista de reserva en `ReservaRepository`; emisión de boletos existentes desde `BoletoAsientoRepository`; servicio transaccional `PagoService`; publicador Redis `PagoConfirmadoEventPublisher`; resolver GraphQL `PagoResolver`; dependencia Redis; y ampliación de `graphql/schema.graphqls`.
+  - *Mutación GraphQL:* `realizarPago(idReserva, metodoPagoUsado, montoTransaccion, acreditado, cuponDescuentoAplicado)`.
+  - *Evento Redis:* publica `PAGO_CONFIRMADO` en el canal `pagos.confirmados` después del commit de la transacción.
+- [x] **CU-05: Gestionar perfil de usuario**
+  - *Resumen:* Implementado con DTO `UsuarioPerfilResponse`; métodos de búsqueda por email y CI en `UsuarioRepository`; servicio transaccional `UsuarioPerfilService` con validación de unicidad de email y CI/pasaporte; resolver GraphQL `UsuarioPerfilResolver`; y ampliación de `graphql/schema.graphqls`.
+  - *Consulta GraphQL:* `obtenerPerfilUsuario(idUsuario)`.
+  - *Mutación GraphQL:* `actualizarPerfilUsuario(idUsuario, nombreCompleto, email, telefono, ciPasaporte)`.
+- [x] **CU-06: Cancelar reserva**
+  - *Resumen:* Implementado con DTO `ReservaCanceladaResponse`; query con bloqueo pesimista `buscarPorIdConBloqueoParaCancelacion` en `ReservaRepository`; método `findByReservaId` en `PagoRepository`; servicio transaccional `CancelacionReservaService` con validación de propiedad del usuario, estados cancelables (PENDIENTE/CONFIRMADA), plazo mínimo de 24h antes de salida, anulación de boletos, reembolso de pago y liberación de asientos; resolver GraphQL `CancelacionReservaResolver`; y ampliación de `graphql/schema.graphqls`.
+  - *Mutación GraphQL:* `cancelarReserva(idReserva, idUsuario)`.
+- [x] **CU-07: Consultar historial de viajes**
+  - *Resumen:* Implementado con DTO `HistorialViajeResponse`; método optimizado `buscarHistorialPorUsuario` en `ReservaRepository`; servicio `HistorialViajesService`; resolutor GraphQL `HistorialViajesResolver`; y ampliación de `graphql/schema.graphqls`.
+  - *Consulta GraphQL:* `consultarHistorialViajes(idUsuario)`.
 
 ---
 
 ## ⚙️ Flujo Administrativo y Operativo
 
-- [ ] **CU-08: Gestionar Usuarios**
-  - *Notas:* Pendiente CRUD y asignación de roles de sistema.
-- [ ] **CU-09: Gestionar Rutas y Horarios**
-  - *Notas:* Pendiente validación de solapamiento de horarios.
-- [ ] **CU-10: Generar Reportes de Ventas**
-  - *Notas:* Pendiente queries de agregación (suma total por fechas).
+- [x] **CU-08: Gestionar Usuarios**
+  - *Notas:* Implementado CRUD de usuarios, entidad `Rol`, servicio `UsuarioAdminService` y controlador GraphQL.
+- [x] **CU-09: Gestionar Rutas y Horarios**
+  - *Notas:* Implementada lógica de rutas, validación estricta de solapamiento de horarios de viajes en BD, y mutaciones administrativas.
+- [x] **CU-10: Generar Reportes de Ventas**
+  - *Resumen:* Implementado con DTOs `ReporteVentasResponse` y `VentasPorFechaResponse`; consulta nativa de agregación por fecha `findVentasAgrupadasPorFecha` en `PagoRepository`; servicio `ReportesVentasService` para validar y sumar totales; resolutor GraphQL `ReportesVentasResolver`; y esquema actualizado en `schema.graphqls`.
+  - *Consulta GraphQL:* `generarReporteVentas(fechaInicio, fechaFin)`.
 - [ ] **CU-11: Gestionar Flota de Buses**
   - *Notas:* Pendiente CRUD de vehículos y asignación de capacidades.

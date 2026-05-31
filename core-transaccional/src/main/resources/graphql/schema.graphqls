@@ -1,0 +1,218 @@
+type Query {
+    buscarRutasYHorariosDisponibles(
+        origen: String!
+        destino: String!
+        fecha: String!
+    ): [ViajeDisponible!]!
+
+    obtenerMapaAsientos(idViaje: Int!): [AsientoEstado!]!
+
+    obtenerPerfilUsuario(idUsuario: Int!): UsuarioPerfil!
+
+    consultarHistorialViajes(idUsuario: Int!): [HistorialViaje!]!
+
+    listarUsuarios: [UsuarioPerfil!]!
+    
+    listarRoles: [Rol!]!
+
+    listarRutas: [RutaDestino!]!
+
+    listarViajesPorRuta(idRuta: Int!): [ViajeDisponible!]!
+
+    generarReporteVentas(
+        fechaInicio: String!
+        fechaFin: String!
+    ): ReporteVentas!
+}
+
+type Mutation {
+    seleccionarAsientoYReservar(
+        idUsuario: Int!
+        idViaje: Int!
+        numeroAsiento: String!
+        nombrePasajero: String!
+        tipoPasajero: String
+    ): ReservaProvisional!
+
+    realizarPago(
+        idReserva: Int!
+        metodoPagoUsado: String!
+        montoTransaccion: Float!
+        acreditado: Boolean!
+        cuponDescuentoAplicado: String
+    ): PagoConfirmado!
+
+    actualizarPerfilUsuario(
+        idUsuario: Int!
+        nombreCompleto: String
+        email: String
+        telefono: String
+        ciPasaporte: String
+    ): UsuarioPerfil!
+
+    cancelarReserva(
+        idReserva: Int!
+        idUsuario: Int!
+    ): ReservaCancelada!
+
+    crearUsuario(
+        ciPasaporte: String!
+        nombreCompleto: String!
+        email: String!
+        passwordHash: String!
+        telefono: String
+        idRol: Int!
+    ): UsuarioPerfil!
+    
+    actualizarUsuario(
+        idUsuario: Int!
+        nombreCompleto: String
+        email: String
+        telefono: String
+        idRol: Int
+    ): UsuarioPerfil!
+    
+    eliminarUsuario(idUsuario: Int!): Boolean!
+
+    crearRuta(
+        origen: String!
+        destino: String!
+        duracion: Float!
+        precio: Float!
+        categoria: String
+    ): RutaDestino!
+
+    actualizarRuta(
+        idRuta: Int!
+        origen: String
+        destino: String
+        duracion: Float
+        precio: Float
+        categoria: String
+    ): RutaDestino!
+
+    eliminarRuta(idRuta: Int!): Boolean!
+
+    programarViaje(
+        idRuta: Int!
+        idBus: Int!
+        fechaHoraSalida: String!
+    ): ViajeDisponible!
+
+    actualizarViajeProgramado(
+        idViaje: Int!
+        idBus: Int
+        fechaHoraSalida: String
+    ): ViajeDisponible!
+
+    cancelarViajeProgramado(idViaje: Int!): Boolean!
+}
+
+type ViajeDisponible {
+    idViaje: ID!
+    idRuta: ID!
+    ciudadOrigen: String!
+    ciudadDestino: String!
+    fechaHoraSalida: String!
+    fechaHoraLlegada: String!
+    duracionEstimadaHoras: Float!
+    precioBase: Float!
+    categoriaTuristica: String
+    idBus: ID!
+    tipoBus: String!
+    capacidadTotalAsientos: Int!
+    estadoViaje: String!
+}
+
+type AsientoEstado {
+    numeroAsiento: String!
+    ocupado: Boolean!
+}
+
+type ReservaProvisional {
+    idReserva: ID!
+    idBoleto: ID!
+    idViaje: ID!
+    idUsuario: ID!
+    numeroAsiento: String!
+    nombrePasajero: String!
+    tipoPasajero: String!
+    estadoReserva: String!
+    estadoBoleto: String!
+    montoEstimado: Float!
+    fechaCreacion: String!
+}
+
+type PagoConfirmado {
+    idPago: ID!
+    idReserva: ID!
+    idUsuario: ID!
+    idViaje: ID!
+    montoTransaccion: Float!
+    metodoPagoUsado: String!
+    estadoPago: String!
+    estadoReserva: String!
+    fechaPago: String!
+    eventoEmitido: Boolean!
+}
+
+type UsuarioPerfil {
+    idUsuario: ID!
+    ciPasaporte: String!
+    nombreCompleto: String!
+    email: String!
+    telefono: String
+    idRol: Int!
+}
+
+type ReservaCancelada {
+    idReserva: ID!
+    idUsuario: ID!
+    idViaje: ID!
+    ciudadOrigen: String!
+    ciudadDestino: String!
+    estadoReserva: String!
+    estadoPago: String!
+    boletosAnulados: Int!
+    montoReembolsado: Float!
+    fechaCancelacion: String!
+}
+
+type HistorialViaje {
+    idReserva: ID!
+    idViaje: ID!
+    ciudadOrigen: String!
+    ciudadDestino: String!
+    fechaCreacion: String!
+    estadoReserva: String!
+    montoTotalPagado: Float!
+    cantidadPasajeros: Int!
+}
+
+type Rol {
+    id: ID!
+    nombre: String!
+}
+
+type RutaDestino {
+    id: ID!
+    ciudadOrigen: String!
+    ciudadDestino: String!
+    duracionEstimadaHoras: Float!
+    precioBase: Float!
+    categoriaTuristica: String
+}
+
+type ReporteVentas {
+    montoTotal: Float!
+    cantidadPagos: Int!
+    fechaInicio: String!
+    fechaFin: String!
+    detallesPorFecha: [VentasPorFecha!]!
+}
+
+type VentasPorFecha {
+    fecha: String!
+    montoDia: Float!
+    cantidadPagosDia: Int!
+}
