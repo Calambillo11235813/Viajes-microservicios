@@ -123,7 +123,14 @@ public class DatabaseSeeder implements CommandLineRunner {
         Set<String> ciGenerados = new HashSet<>();
         Set<String> emailsGenerados = new HashSet<>();
 
-        for (int i = 1; i <= TOTAL_USUARIOS; i++) {
+        // USUARIO TEST ESTÁTICO PARA PODER LOGUEARNOS EN LA APP MÓVIL
+        batch.add(new Object[] {
+            1, "1234567-SC", "Usuario Prueba API", "test@test.com", "123456", "77766655", idRolCliente
+        });
+        ciGenerados.add("1234567-SC");
+        emailsGenerados.add("test@test.com");
+
+        for (int i = 2; i <= TOTAL_USUARIOS; i++) {
             String nombreCompleto = faker.name().fullName();
             String email = generarEmail(nombreCompleto, i, emailsGenerados);
             String ciPasaporte = generarCiBoliviano(ciGenerados);

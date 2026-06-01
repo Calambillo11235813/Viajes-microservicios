@@ -14,6 +14,7 @@
 - [x] **CU-01: Buscar rutas y horarios disponibles**
   - *Resumen:* Implementado con entidades JPA `RutaDestino`, `Flota` y `ViajeProgramado`; repositorio `ViajeProgramadoRepository`; servicio `ViajeConsultaService`; DTO `ViajeDisponibleResponse`; resolver GraphQL `ViajeQueryResolver`; y schema `graphql/schema.graphqls`.
   - *Consulta GraphQL:* `buscarRutasYHorariosDisponibles(origen, destino, fecha)`.
+  - *Integración Móvil:* Completada el 2026-06-01.
 - [x] **CU-02: Seleccionar asiento y reservar**
   - *Resumen:* Implementado con entidades JPA `Usuario`, `Reserva` y `BoletoAsiento`; repositorios `UsuarioRepository`, `ReservaRepository` y `BoletoAsientoRepository`; bloqueo pesimista en `ViajeProgramadoRepository`; servicio `ReservaAsientoService`; resolver GraphQL `ReservaAsientoResolver`; y ampliación de `graphql/schema.graphqls`.
   - *Consulta GraphQL:* `obtenerMapaAsientos(idViaje)`.

@@ -26,6 +26,8 @@ type Query {
 }
 
 type Mutation {
+    login(email: String!, passwordHash: String!): AuthResponse!
+
     seleccionarAsientoYReservar(
         idUsuario: Int!
         idViaje: Int!
@@ -215,4 +217,9 @@ type VentasPorFecha {
     fecha: String!
     montoDia: Float!
     cantidadPagosDia: Int!
+}
+
+type AuthResponse {
+    token: String!
+    usuario: UsuarioPerfil!
 }
