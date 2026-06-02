@@ -14,3 +14,11 @@
 - [x] **CU-01: Buscar rutas y horarios**
   - *Fecha de finalización:* 2026-06-01
   - *Resumen:* Pantalla `HomeScreen` con formulario de búsqueda nativa (modal personalizado para origen y destino), consultas GraphQL dinámicas (`GET_RUTAS` y `BUSCAR_VIAJES`), y pantalla de resultados `SearchResultsScreen` con el componente reutilizable `TripCard`. Todo documentado con JSDoc.
+
+- [x] **CU-02: Seleccionar asiento y reservar**
+  - *Fecha de finalización:* 2026-06-01
+  - *Resumen:* Pantalla `SeatSelectionScreen` con un mapa visual de asientos (`FlatList` en modo Grid), formulario dinámico de datos del pasajero, e integración con las operaciones GraphQL `OBTENER_MAPA_ASIENTOS` y `SELECCIONAR_ASIENTO_Y_RESERVAR`. El `idUsuario` es fijo (=1) para el usuario de prueba actual.
+
+- [x] **CU-03: Realizar pago (QR, billeteras)**
+  - *Fecha de finalización:* 2026-06-01
+  - *Resumen:* Pantalla `PaymentScreen` con flujo simulado de 3 pasos (selección de método → procesamiento → comprobante). Soporta pago por QR y transferencia bancaria. Ejecuta la mutación `REALIZAR_PAGO` para cada reserva y muestra comprobante con resumen de monto total, método y asientos.

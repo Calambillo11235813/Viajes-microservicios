@@ -19,6 +19,7 @@
   - *Resumen:* Implementado con entidades JPA `Usuario`, `Reserva` y `BoletoAsiento`; repositorios `UsuarioRepository`, `ReservaRepository` y `BoletoAsientoRepository`; bloqueo pesimista en `ViajeProgramadoRepository`; servicio `ReservaAsientoService`; resolver GraphQL `ReservaAsientoResolver`; y ampliación de `graphql/schema.graphqls`.
   - *Consulta GraphQL:* `obtenerMapaAsientos(idViaje)`.
   - *Mutación GraphQL:* `seleccionarAsientoYReservar(idUsuario, idViaje, numeroAsiento, nombrePasajero, tipoPasajero)`.
+  - *Integración Móvil:* Completada el 2026-06-01.
 - [x] **CU-03: Realizar pago (QR, transferencias)**
   - *Resumen:* Implementado con entidad JPA `Pago`; repositorio `PagoRepository`; bloqueo pesimista de reserva en `ReservaRepository`; emisión de boletos existentes desde `BoletoAsientoRepository`; servicio transaccional `PagoService`; publicador Redis `PagoConfirmadoEventPublisher`; resolver GraphQL `PagoResolver`; dependencia Redis; y ampliación de `graphql/schema.graphqls`.
   - *Mutación GraphQL:* `realizarPago(idReserva, metodoPagoUsado, montoTransaccion, acreditado, cuponDescuentoAplicado)`.

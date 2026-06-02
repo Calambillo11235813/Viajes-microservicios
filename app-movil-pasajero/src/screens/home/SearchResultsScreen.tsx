@@ -18,7 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SearchResults'>;
 export default function SearchResultsScreen({ route, navigation }: Props) {
   const { origen, destino, fecha } = route.params;
 
-  const { loading, error, data, refetch } = useQuery(BUSCAR_VIAJES, {
+  const { loading, error, data, refetch } = useQuery<any>(BUSCAR_VIAJES, {
     variables: { origen, destino, fecha },
     fetchPolicy: 'network-only' // Asegurar datos frescos
   });
@@ -93,9 +93,7 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
             tipoBus={item.tipoBus}
             capacidadTotalAsientos={item.capacidadTotalAsientos}
             onPress={() => {
-              // Navegar a selección de asiento (CU-02)
-              // navigation.navigate('SeatSelection', { idViaje: item.idViaje })
-              console.log('Seleccionar viaje', item.idViaje);
+              navigation.navigate('SeatSelection', { idViaje: item.idViaje });
             }}
           />
         )}

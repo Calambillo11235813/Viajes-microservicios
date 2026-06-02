@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/navigation/AppNavigator';
@@ -16,14 +17,24 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
  * @param {Props} props - Propiedades de navegación.
  */
 export default function HomeScreen({ navigation }: Props) {
-  const { data, loading, error } = useQuery(GET_RUTAS);
+  const { data, loading, error } = useQuery<any>(GET_RUTAS);
 
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('');
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
+  const [dateObj, setDateObj] = useState(new Date());
+  const [fecha, setFecha] = useState(dateObj.toISOString().split('T')[0]); // YYYY-MM-DD
   
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'origen' | 'destino'>('origen');
+
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDateObj(selectedDate);
+      setFecha(selectedDate.toISOString().split('T')[0]);
+    }
+  };
 
   // Extraer origenes únicos y destinos únicos basados en las rutas disponibles
   const origenesUnicos = useMemo(() => {
@@ -126,16 +137,24 @@ export default function HomeScreen({ navigation }: Props) {
 
             {/* Fecha */}
             <View style={globalStyles.inputContainer}>
-              <Text style={globalStyles.inputLabel}>Fecha (YYYY-MM-DD)</Text>
-              <TextInput 
+              <Text style={globalStyles.inputLabel}>Fecha</Text>
+              <TouchableOpacity 
                 style={globalStyles.inputField}
-                value={fecha}
-                onChangeText={setFecha}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={COLORS.placeholder}
-                keyboardType="numeric"
-                maxLength={10}
-              />
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={{ color: fecha ? COLORS.textPrimary : COLORS.placeholder }}>
+                  {fecha || 'Seleccionar fecha'}
+                </Text>
+              </TouchableOpacity>
+              
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateObj}
+                  mode="date"
+                  display="default"
+                  onChange={onChangeDate}
+                />
+              )}
             </View>
 
             <TouchableOpacity 

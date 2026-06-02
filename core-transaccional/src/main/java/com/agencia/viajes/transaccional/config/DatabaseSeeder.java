@@ -21,8 +21,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.core.annotation.Order;
 
 @Component
+@Order(1)
 @RequiredArgsConstructor
 public class DatabaseSeeder implements CommandLineRunner {
 
