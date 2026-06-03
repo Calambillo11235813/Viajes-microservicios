@@ -14,6 +14,7 @@ public class HistorialViajeResponse {
     private Integer idViaje;
     private String ciudadOrigen;
     private String ciudadDestino;
+    private String fechaHoraSalida;
     private String fechaCreacion;
     private String estadoReserva;
     private BigDecimal montoTotalPagado;

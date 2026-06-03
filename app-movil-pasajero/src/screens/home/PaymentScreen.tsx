@@ -7,14 +7,15 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from 'react-native';
 import { useMutation } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/navigation/AppNavigator';
+import { SearchStackParamList } from '@/navigation/SearchStackNavigator';
 import { REALIZAR_PAGO } from '@/graphql/queries/pagos';
 import { COLORS, SPACING, TYPOGRAPHY, globalStyles } from '@/theme/theme';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Payment'>;
+type Props = NativeStackScreenProps<SearchStackParamList, 'Payment'>;
 
 /**
  * Información de una reserva pendiente de pago.
@@ -58,11 +59,13 @@ export default function PaymentScreen({ route, navigation }: Props) {
     try {
       // Procesar pago para cada reserva secuencialmente
       for (const reserva of reservasParsed) {
+        // Redondear a 2 decimales para evitar errores de precisión Float vs BigDecimal
+        const montoRedondeado = Math.round(reserva.montoEstimado * 100) / 100;
         await realizarPago({
           variables: {
             idReserva: parseInt(reserva.idReserva),
             metodoPagoUsado: metodoPago,
-            montoTransaccion: reserva.montoEstimado,
+            montoTransaccion: montoRedondeado,
             acreditado: true, // Simulado: siempre acreditado
             cuponDescuentoAplicado: null,
           },
@@ -131,9 +134,14 @@ export default function PaymentScreen({ route, navigation }: Props) {
 
           <TouchableOpacity
             style={globalStyles.btnPrimary}
-            onPress={() => navigation.popToTop()}
+            onPress={() => {
+              // Limpiar este stack anidado
+              navigation.popToTop();
+              // Navegar al tab "MisViajes" del Drawer padre
+              navigation.getParent()?.navigate('MisViajes');
+            }}
           >
-            <Text style={TYPOGRAPHY.buttonText}>Volver al Inicio</Text>
+            <Text style={TYPOGRAPHY.buttonText}>Ver Mis Viajes</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -224,8 +232,10 @@ export default function PaymentScreen({ route, navigation }: Props) {
             <Text style={styles.paymentDetailsTitle}>Código QR de Pago</Text>
             <View style={styles.qrPlaceholder}>
               <View style={styles.qrBox}>
-                <Text style={styles.qrText}>QR</Text>
-                <Text style={styles.qrAmount}>Bs. {montoTotal.toFixed(2)}</Text>
+                <Image 
+                  source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PagoViaje-Monto-${montoTotal.toFixed(2)}` }}
+                  style={styles.qrImage}
+                />
               </View>
             </View>
             <Text style={styles.paymentNote}>
@@ -466,15 +476,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  qrText: {
-    ...TYPOGRAPHY.h1,
-    color: COLORS.primary,
-    opacity: 0.5,
-  },
-  qrAmount: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.accent,
-    marginTop: SPACING.sm,
+  qrImage: {
+    width: 150,
+    height: 150,
   },
   bankDetail: {
     flexDirection: 'row',

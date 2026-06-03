@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Pla
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/navigation/AppNavigator';
+import { SearchStackParamList } from '@/navigation/SearchStackNavigator';
 import { GET_RUTAS } from '@/graphql/queries/viajes';
 import { COLORS, SPACING, TYPOGRAPHY, globalStyles } from '@/theme/theme';
 import SelectModal from '@/components/SelectModal';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<SearchStackParamList, 'Home'>;
 
 /**
  * Pantalla principal (Inicio) de la aplicación de pasajeros.

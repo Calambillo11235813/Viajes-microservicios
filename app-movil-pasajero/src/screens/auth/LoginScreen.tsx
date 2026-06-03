@@ -14,15 +14,20 @@ import {
 import { useMutation } from '@apollo/client/react';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/theme/theme';
 import { LOGIN_MUTATION } from '@/graphql/mutations/auth';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('test@test.com'); // Datos pre-cargados para desarrollo
   const [password, setPassword] = useState('123456');
 
+  const { setUser } = useAuth();
+  
   const [loginMutation, { loading }] = useMutation<any>(LOGIN_MUTATION, {
     onCompleted: (data) => {
       console.log('Login exitoso:', data.login.usuario);
-      navigation.replace('Home'); // replace evita que el usuario pueda darle "Atras" y volver al login
+      setUser(data.login.usuario); // Guarda el usuario en el contexto
+      // No necesitamos llamar a navigation.replace('Home') porque 
+      // AppNavigator escucha el cambio de `user` y cambia el RootStack a "Main"
     },
     onError: (error) => {
       console.error('Error de login:', error);

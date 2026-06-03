@@ -1,17 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
-import AppNavigator from '@/navigation/AppNavigator';
+import { StyleSheet } from 'react-native';
 import { ApolloProvider } from '@apollo/client/react';
 import { apolloClient } from '@/graphql/client';
+import AppNavigator from '@/navigation/AppNavigator';
+import { AuthProvider } from '@/context/AuthContext';
+import { View } from 'react-native';
 
 export default function App() {
   return (
-    <ApolloProvider client={apolloClient}>
-      <View style={styles.container}>
-        <AppNavigator />
-        <StatusBar style="auto" />
-      </View>
-    </ApolloProvider>
+    <View style={styles.container}>
+      <ApolloProvider client={apolloClient}>
+        <AuthProvider>
+          <AppNavigator />
+          <StatusBar style="auto" />
+        </AuthProvider>
+      </ApolloProvider>
+    </View>
   );
 }
 

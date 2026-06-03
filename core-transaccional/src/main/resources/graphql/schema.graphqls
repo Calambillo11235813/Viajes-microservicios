@@ -185,6 +185,7 @@ type HistorialViaje {
     idViaje: ID!
     ciudadOrigen: String!
     ciudadDestino: String!
+    fechaHoraSalida: String!
     fechaCreacion: String!
     estadoReserva: String!
     montoTotalPagado: Float!

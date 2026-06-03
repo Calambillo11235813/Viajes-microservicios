@@ -17,11 +17,12 @@ import {
 } from 'react-native';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/navigation/AppNavigator';
+import { SearchStackParamList } from '@/navigation/SearchStackNavigator';
 import { OBTENER_MAPA_ASIENTOS, SELECCIONAR_ASIENTO_Y_RESERVAR } from '@/graphql/queries/asientos';
 import { COLORS, SPACING, TYPOGRAPHY, globalStyles, SCREEN_METRICS } from '@/theme/theme';
+import { useAuth } from '@/context/AuthContext';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'SeatSelection'>;
+type Props = NativeStackScreenProps<SearchStackParamList, 'SeatSelection'>;
 
 /**
  * Datos de pasajero asociados a un asiento seleccionado.
@@ -41,6 +42,7 @@ interface PasajeroData {
  */
 export default function SeatSelectionScreen({ route, navigation }: Props) {
   const { idViaje } = route.params;
+  const { user } = useAuth();
 
   // Estado: lista de pasajeros (uno por asiento seleccionado)
   const [pasajeros, setPasajeros] = useState<PasajeroData[]>([]);
@@ -114,7 +116,7 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
               for (const pasajero of pasajeros) {
                 const { data } = await reservarMutation({
                   variables: {
-                    idUsuario: 1, // MOCK: Usuario de prueba test@test.com
+                    idUsuario: Number(user?.idUsuario),
                     idViaje: parseInt(idViaje),
                     numeroAsiento: pasajero.numeroAsiento,
                     nombrePasajero: pasajero.nombrePasajero,

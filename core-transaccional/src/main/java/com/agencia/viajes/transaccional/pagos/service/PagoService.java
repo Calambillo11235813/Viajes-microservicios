@@ -154,7 +154,12 @@ public class PagoService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                pagoConfirmadoEventPublisher.publicarPagoConfirmado(pago);
+                try {
+                    pagoConfirmadoEventPublisher.publicarPagoConfirmado(pago);
+                } catch (Exception e) {
+                    // Redis puede no estar disponible; el pago ya fue confirmado en BD.
+                    System.err.println("[WARN] No se pudo publicar evento de pago a Redis: " + e.getMessage());
+                }
             }
         });
     }

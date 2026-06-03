@@ -25,6 +25,7 @@ public class HistorialViajesService {
                         .idViaje(reserva.getViajeProgramado().getId())
                         .ciudadOrigen(reserva.getViajeProgramado().getRutaDestino().getCiudadOrigen())
                         .ciudadDestino(reserva.getViajeProgramado().getRutaDestino().getCiudadDestino())
+                        .fechaHoraSalida(reserva.getViajeProgramado().getFechaHoraSalida().toString())
                         .fechaCreacion(reserva.getFechaCreacion().toString())
                         .estadoReserva(reserva.getEstadoReserva())
                         .montoTotalPagado(reserva.getMontoTotalPagado())

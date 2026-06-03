@@ -2,12 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useQuery } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/navigation/AppNavigator';
 import { BUSCAR_VIAJES } from '@/graphql/queries/viajes';
 import { COLORS, SPACING, TYPOGRAPHY, globalStyles, SCREEN_METRICS } from '@/theme/theme';
 import TripCard from '@/components/TripCard';
+import { SearchStackParamList } from '@/navigation/SearchStackNavigator';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'SearchResults'>;
+type Props = NativeStackScreenProps<SearchStackParamList, 'SearchResults'>;
 
 /**
  * Pantalla de resultados de búsqueda.
