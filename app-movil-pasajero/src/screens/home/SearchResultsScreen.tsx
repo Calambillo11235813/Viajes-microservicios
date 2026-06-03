@@ -67,7 +67,7 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
   return (
     <View style={globalStyles.safeAreaContainer}>
       {renderHeader()}
-      
+
       <FlatList
         data={viajes}
         keyExtractor={(item) => item.idViaje.toString()}
@@ -83,7 +83,7 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
           </View>
         }
         renderItem={({ item }) => (
-          <TripCard 
+          <TripCard
             idViaje={item.idViaje}
             ciudadOrigen={item.ciudadOrigen}
             ciudadDestino={item.ciudadDestino}
@@ -104,7 +104,7 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: SPACING.xl,
+    paddingTop: SPACING.xl + 70,
     paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.md,
     backgroundColor: COLORS.surface,

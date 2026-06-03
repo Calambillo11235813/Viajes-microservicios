@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ActivityIndicator, 
-  TouchableOpacity, 
-  Alert, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
   FlatList,
   TextInput,
   KeyboardAvoidingView,
@@ -76,7 +76,7 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
    * Actualiza los datos de pasajero para un asiento específico.
    */
   const updatePasajero = (numeroAsiento: string, field: keyof PasajeroData, value: string) => {
-    setPasajeros(prev => prev.map(p => 
+    setPasajeros(prev => prev.map(p =>
       p.numeroAsiento === numeroAsiento ? { ...p, [field]: value } : p
     ));
   };
@@ -105,8 +105,8 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
       `Vas a reservar ${pasajeros.length} asiento(s):\n\n${asientosTexto}\n\n¿Continuar?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Confirmar', 
+        {
+          text: 'Confirmar',
           onPress: async () => {
             try {
               const reservasGeneradas: { idReserva: string; montoEstimado: number; numeroAsiento: string }[] = [];
@@ -179,7 +179,7 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
     }
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={seatStyle}
         disabled={isOccupied || resLoading}
         onPress={() => toggleSeat(item.numeroAsiento)}
@@ -203,7 +203,7 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
 
       <View style={globalStyles.inputContainer}>
         <Text style={globalStyles.inputLabel}>Nombre Completo</Text>
-        <TextInput 
+        <TextInput
           style={globalStyles.inputField}
           placeholder="Ej. Juan Pérez"
           placeholderTextColor={COLORS.placeholder}
@@ -216,13 +216,13 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
       <View style={globalStyles.inputContainer}>
         <Text style={globalStyles.inputLabel}>Tipo de Pasajero</Text>
         <View style={styles.typeSelectorContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.typeOption, pasajero.tipoPasajero === 'Adulto' && styles.typeOptionSelected]}
             onPress={() => updatePasajero(pasajero.numeroAsiento, 'tipoPasajero', 'Adulto')}
           >
             <Text style={[styles.typeOptionText, pasajero.tipoPasajero === 'Adulto' && styles.typeOptionTextSelected]}>Adulto</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.typeOption, pasajero.tipoPasajero === 'Niño' && styles.typeOptionSelected]}
             onPress={() => updatePasajero(pasajero.numeroAsiento, 'tipoPasajero', 'Niño')}
           >
@@ -262,14 +262,14 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
   const asientos = mapData?.obtenerMapaAsientos || [];
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={globalStyles.safeAreaContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {renderHeader()}
-      
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
+
         {/* Leyenda */}
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
@@ -289,7 +289,7 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
         {/* Mapa de asientos (Grid) */}
         <View style={styles.busContainer}>
           <Text style={styles.busFront}>FRENTE DEL BUS</Text>
-          <FlatList 
+          <FlatList
             data={asientos}
             keyExtractor={(item) => item.numeroAsiento}
             numColumns={4}
@@ -306,7 +306,7 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
             <Text style={styles.sectionTitle}>Datos de Pasajeros ({pasajeros.length})</Text>
             {pasajeros.map((p, i) => renderPasajeroForm(p, i))}
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[globalStyles.btnPrimary, resLoading && { opacity: 0.7 }]}
               onPress={handleReservar}
               disabled={resLoading}
@@ -328,7 +328,7 @@ export default function SeatSelectionScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: SPACING.xl,
+    paddingTop: SPACING.xl + 70,
     paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.md,
     backgroundColor: COLORS.surface,

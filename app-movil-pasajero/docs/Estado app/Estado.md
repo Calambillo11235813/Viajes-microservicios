@@ -22,3 +22,11 @@
 - [x] **CU-03: Realizar pago (QR, billeteras)**
   - *Fecha de finalización:* 2026-06-01
   - *Resumen:* Pantalla `PaymentScreen` con flujo simulado de 3 pasos (selección de método → procesamiento → comprobante). Soporta pago por QR y transferencia bancaria. Ejecuta la mutación `REALIZAR_PAGO` para cada reserva y muestra comprobante con resumen de monto total, método y asientos.
+
+ - [X] **CU-04: modificar o cancelar pasaje**
+  - *Fecha de finalización:* 2026-06-02
+  - *Resumen:* Pantalla `MyTripsScreen` con historial de reservas consolidado (agrupación por `idViaje` y `estadoReserva`). Muestra monto total sumado y cantidad de pasajeros por grupo. Cancelación por lotes iterando sobre todos los IDs de reserva del grupo mediante la mutación `CANCELAR_RESERVA`.
+
+- [x] **CU-06: Buscar destinos mediante imágenes (IA)**
+  - *Fecha de finalización:* 2026-06-02
+  - *Resumen:* Pantalla `BuscarImagenScreen` con integración de `expo-image-picker` para galería y cámara. Simulación de análisis de IA (mock con setTimeout de 3s) que detecta destinos turísticos bolivianos aleatorios con porcentaje de confianza. Integrada en el CustomDrawer como nueva sección de navegación.

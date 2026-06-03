@@ -23,7 +23,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [destino, setDestino] = useState('');
   const [dateObj, setDateObj] = useState(new Date());
   const [fecha, setFecha] = useState(dateObj.toISOString().split('T')[0]); // YYYY-MM-DD
-  
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'origen' | 'destino'>('origen');
@@ -76,7 +76,7 @@ export default function HomeScreen({ navigation }: Props) {
       Alert.alert('Datos incompletos', 'Por favor selecciona origen, destino y fecha para buscar.');
       return;
     }
-    
+
     // Validar formato simple de fecha YYYY-MM-DD
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(fecha)) {
@@ -90,11 +90,11 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <View style={globalStyles.safeAreaContainer}>
       <View style={styles.header}>
-        <Text style={styles.greeting}>Hola,</Text>
+        <Text style={styles.greeting}>Bienvenido</Text>
         <Text style={styles.subtitle}>¿A dónde quieres viajar hoy?</Text>
       </View>
 
-      <View style={globalStyles.mainContainer}>
+      <View style={[globalStyles.mainContainer, { justifyContent: 'flex-start', paddingBottom: 0 }]}>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={COLORS.primary} />
@@ -107,12 +107,12 @@ export default function HomeScreen({ navigation }: Props) {
         ) : (
           <View style={globalStyles.card}>
             <Text style={styles.cardTitle}>Buscar Pasajes</Text>
-            
+
             {/* Origen */}
             <View style={globalStyles.inputContainer}>
               <Text style={globalStyles.inputLabel}>Origen</Text>
-              <TouchableOpacity 
-                style={globalStyles.inputField} 
+              <TouchableOpacity
+                style={globalStyles.inputField}
                 onPress={() => handleOpenModal('origen')}
               >
                 <Text style={{ color: origen ? COLORS.textPrimary : COLORS.placeholder }}>
@@ -124,8 +124,8 @@ export default function HomeScreen({ navigation }: Props) {
             {/* Destino */}
             <View style={globalStyles.inputContainer}>
               <Text style={globalStyles.inputLabel}>Destino</Text>
-              <TouchableOpacity 
-                style={[globalStyles.inputField, !origen && styles.inputDisabled]} 
+              <TouchableOpacity
+                style={[globalStyles.inputField, !origen && styles.inputDisabled]}
                 onPress={() => origen && handleOpenModal('destino')}
                 activeOpacity={origen ? 0.7 : 1}
               >
@@ -138,7 +138,7 @@ export default function HomeScreen({ navigation }: Props) {
             {/* Fecha */}
             <View style={globalStyles.inputContainer}>
               <Text style={globalStyles.inputLabel}>Fecha</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={globalStyles.inputField}
                 onPress={() => setShowDatePicker(true)}
               >
@@ -146,7 +146,7 @@ export default function HomeScreen({ navigation }: Props) {
                   {fecha || 'Seleccionar fecha'}
                 </Text>
               </TouchableOpacity>
-              
+
               {showDatePicker && (
                 <DateTimePicker
                   value={dateObj}
@@ -157,7 +157,7 @@ export default function HomeScreen({ navigation }: Props) {
               )}
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[globalStyles.btnPrimary, { marginTop: SPACING.lg }]}
               onPress={handleSearch}
             >
@@ -167,7 +167,7 @@ export default function HomeScreen({ navigation }: Props) {
         )}
       </View>
 
-      <SelectModal 
+      <SelectModal
         visible={modalVisible}
         title={modalType === 'origen' ? 'Seleccionar Origen' : 'Seleccionar Destino'}
         options={modalType === 'origen' ? origenesUnicos : destinosUnicos}
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: COLORS.primary,
     paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.xxl,
+    paddingTop: SPACING.xxl + 70,
     paddingBottom: SPACING.xl,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,

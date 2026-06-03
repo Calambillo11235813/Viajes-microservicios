@@ -7,6 +7,7 @@ Hacer el login es lo basico
 * **CU-03:** Realizar pago (QR, billeteras).
 * **CU-04:** Modificar o cancelar reserva.
 * **CU-06:** Buscar destinos mediante imágenes (IA).
+* **CU-07:** Generación automática de reels turísticos
 * **CU-08:** Traducir texto mediante video (IA).
 * **CU-13:** Notificaciones push de estado del viaje.
 * **CU-14:** Alerta de proximidad de parada (GPS).

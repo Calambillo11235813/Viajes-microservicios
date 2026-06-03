@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  DeviceEventEmitter,
 } from 'react-native';
 import { useMutation } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -135,10 +136,10 @@ export default function PaymentScreen({ route, navigation }: Props) {
           <TouchableOpacity
             style={globalStyles.btnPrimary}
             onPress={() => {
-              // Limpiar este stack anidado
+              // Volver al inicio del stack de búsqueda internamente
               navigation.popToTop();
-              // Navegar al tab "MisViajes" del Drawer padre
-              navigation.getParent()?.navigate('MisViajes');
+              // Emitir evento para cambiar la pestaña en el DrawerNavigator padre
+              DeviceEventEmitter.emit('NAVIGATE_DRAWER', 'MisViajes');
             }}
           >
             <Text style={TYPOGRAPHY.buttonText}>Ver Mis Viajes</Text>
@@ -232,7 +233,7 @@ export default function PaymentScreen({ route, navigation }: Props) {
             <Text style={styles.paymentDetailsTitle}>Código QR de Pago</Text>
             <View style={styles.qrPlaceholder}>
               <View style={styles.qrBox}>
-                <Image 
+                <Image
                   source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PagoViaje-Monto-${montoTotal.toFixed(2)}` }}
                   style={styles.qrImage}
                 />
@@ -292,7 +293,7 @@ export default function PaymentScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: SPACING.xl,
+    paddingTop: SPACING.xl + 70,
     paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.md,
     backgroundColor: COLORS.surface,

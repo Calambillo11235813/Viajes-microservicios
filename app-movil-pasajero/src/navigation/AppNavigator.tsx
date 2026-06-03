@@ -2,12 +2,12 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '@/screens/auth/LoginScreen';
-import BottomTabNavigator from '@/navigation/BottomTabNavigator';
+import DrawerNavigator from '@/navigation/DrawerNavigator';
 import { useAuth } from '@/context/AuthContext';
 
 export type RootStackParamList = {
   Login: undefined;
-  Main: undefined; // Las Tabs
+  Main: undefined; // DrawerNavigator
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -26,7 +26,7 @@ export default function AppNavigator() {
         {!user ? (
           <Stack.Screen name="Login" component={LoginScreen} />
         ) : (
-          <Stack.Screen name="Main" component={BottomTabNavigator} />
+          <Stack.Screen name="Main" component={DrawerNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
