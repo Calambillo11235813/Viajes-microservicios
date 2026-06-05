@@ -1,0 +1,75 @@
+<div class="bg-white rounded-lg shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-semibold text-gray-800">Rutas Interdepartamentales</h2>
+    <button (click)="abrirModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-medium">
+      + Nueva Ruta
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-10">
+    <p class="text-gray-500">Cargando rutas...</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading" class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+        <tr>
+          <th class="py-3 px-4 text-left border-b">ID</th>
+          <th class="py-3 px-4 text-left border-b">Origen</th>
+          <th class="py-3 px-4 text-left border-b">Destino</th>
+          <th class="py-3 px-4 text-left border-b">Duración (Hrs)</th>
+          <th class="py-3 px-4 text-left border-b">Precio Base</th>
+          <th class="py-3 px-4 text-left border-b">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm text-gray-700">
+        <tr *ngFor="let ruta of rutas" class="border-b hover:bg-gray-50">
+          <td class="py-3 px-4">{{ ruta.id }}</td>
+          <td class="py-3 px-4 font-medium text-gray-900">{{ ruta.ciudadOrigen }}</td>
+          <td class="py-3 px-4 font-medium text-gray-900">{{ ruta.ciudadDestino }}</td>
+          <td class="py-3 px-4">{{ ruta.duracionEstimadaHoras }}h</td>
+          <td class="py-3 px-4">{{ ruta.precioBase | currency:'Bs ' }}</td>
+          <td class="py-3 px-4">
+            <button (click)="eliminar(ruta.id)" class="text-red-500 hover:text-red-700 font-medium">Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="rutas.length === 0">
+          <td colspan="6" class="py-4 text-center text-gray-500">No hay rutas registradas.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Form -->
+<div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+    <h3 class="text-lg font-bold mb-4">Registrar Nueva Ruta</h3>
+    <form [formGroup]="rutaForm" (ngSubmit)="guardarRuta()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Ciudad Origen</label>
+        <input type="text" formControlName="ciudadOrigen" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Ciudad Destino</label>
+        <input type="text" formControlName="ciudadDestino" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Duración (Horas)</label>
+          <input type="number" formControlName="duracionEstimadaHoras" step="0.5" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Precio Base (Bs)</label>
+          <input type="number" formControlName="precioBase" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button type="button" (click)="cerrarModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancelar</button>
+        <button type="submit" [disabled]="rutaForm.invalid" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>

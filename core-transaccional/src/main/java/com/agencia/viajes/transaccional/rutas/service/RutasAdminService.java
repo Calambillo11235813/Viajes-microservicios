@@ -127,7 +127,7 @@ public class RutasAdminService {
         }
 
         // Validación estricta de solapamiento excluyendo el viaje actual
-        validarSolapamiento(viaje.getFlota().getId(), viaje.getFechaHoraSalida(), viaje.getFechaHoraLlegada(), idViaje);
+        validarSolapamiento(viaje.getFlota().getIdBus(), viaje.getFechaHoraSalida(), viaje.getFechaHoraLlegada(), idViaje);
 
         return mapearRespuesta(viajeProgramadoRepository.save(viaje));
     }
@@ -159,7 +159,7 @@ public class RutasAdminService {
                 viaje.getRutaDestino().getDuracionEstimadaHoras(),
                 viaje.getRutaDestino().getPrecioBase(),
                 viaje.getRutaDestino().getCategoriaTuristica(),
-                viaje.getFlota().getId(),
+                viaje.getFlota().getIdBus(),
                 viaje.getFlota().getTipoBus(),
                 viaje.getFlota().getCapacidadTotalAsientos(),
                 viaje.getEstadoViaje()

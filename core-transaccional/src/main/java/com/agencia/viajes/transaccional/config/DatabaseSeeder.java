@@ -47,6 +47,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final JdbcTemplate jdbcTemplate;
     private final Faker faker = new Faker(new Locale("es", "BO"));
     private final Random random = new Random();
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -57,15 +58,18 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         Map<String, RoleCatalog> roles = cargarRoles();
         RoleCatalog rolCliente = roles.get("CLIENTE");
-        if (rolCliente == null) {
-            throw new IllegalStateException("No se encontro el rol CLIENTE en la base de datos.");
+        RoleCatalog rolAdmin = roles.get("ADMINISTRADOR");
+        RoleCatalog rolGerente = roles.get("GERENTE");
+
+        if (rolCliente == null || rolAdmin == null || rolGerente == null) {
+            throw new IllegalStateException("Faltan roles requeridos (CLIENTE, ADMINISTRADOR, GERENTE) en la base de datos.");
         }
 
         List<RouteCatalog> rutas = cargarRutas();
         List<FleetCatalog> flotas = cargarFlotas();
         List<PackageCatalog> paquetes = cargarPaquetes();
 
-        insertarUsuarios(rolCliente.id());
+        insertarUsuarios(rolCliente.id(), rolAdmin.id(), rolGerente.id());
         List<TripSeed> viajes = insertarViajes(rutas, flotas);
         insertarReservasPagosYBoletos(viajes, paquetes);
         reajustarSecuencias();
@@ -108,7 +112,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 rs.getBigDecimal("precio_total")));
         }
 
-    private void insertarUsuarios(long idRolCliente) {
+    private void insertarUsuarios(long idRolCliente, long idRolAdmin, long idRolGerente) {
         String sql = """
                 INSERT INTO USUARIO (
                     id_usuario,
@@ -127,12 +131,25 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         // USUARIO TEST ESTÁTICO PARA PODER LOGUEARNOS EN LA APP MÓVIL
         batch.add(new Object[] {
-            1, "1234567-SC", "Usuario Prueba API", "test@test.com", "123456", "77766655", idRolCliente
+            1, "1234567-SC", "Usuario Prueba API", "test@test.com", passwordEncoder.encode("123456"), "77766655", idRolCliente
         });
         ciGenerados.add("1234567-SC");
         emailsGenerados.add("test@test.com");
 
-        for (int i = 2; i <= TOTAL_USUARIOS; i++) {
+        // USUARIOS ESTÁTICOS PARA EL FRONTEND ADMINISTRATIVO
+        batch.add(new Object[] {
+            2, "9999999-SC", "Administrador Principal", "admin@viajes.com", passwordEncoder.encode("admin123"), "70000001", idRolAdmin
+        });
+        ciGenerados.add("9999999-SC");
+        emailsGenerados.add("admin@viajes.com");
+
+        batch.add(new Object[] {
+            3, "8888888-LP", "Gerente General", "gerente@viajes.com", passwordEncoder.encode("gerente123"), "70000002", idRolGerente
+        });
+        ciGenerados.add("8888888-LP");
+        emailsGenerados.add("gerente@viajes.com");
+
+        for (int i = 4; i <= TOTAL_USUARIOS; i++) {
             String nombreCompleto = faker.name().fullName();
             String email = generarEmail(nombreCompleto, i, emailsGenerados);
             String ciPasaporte = generarCiBoliviano(ciGenerados);
@@ -326,8 +343,12 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private void ajustarSecuencia(String tabla, String columna) {
-        String sql = "SELECT setval(pg_get_serial_sequence(?, ?), COALESCE((SELECT MAX(" + columna + ") FROM " + tabla + "), 1), true)";
-        jdbcTemplate.queryForObject(sql, Long.class, tabla.toLowerCase(Locale.ROOT), columna);
+        try {
+            String sql = "SELECT setval(pg_get_serial_sequence(?, ?), COALESCE((SELECT MAX(" + columna + ") FROM " + tabla + "), 1), true)";
+            jdbcTemplate.queryForObject(sql, Long.class, tabla.toLowerCase(Locale.ROOT), columna);
+        } catch (Exception e) {
+            // Ignorado en H2 u otras bases de datos que no soportan secuencias de Postgres
+        }
     }
 
     private void ejecutarBatch(String sql, List<Object[]> batch) {
@@ -373,7 +394,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private String generarCodigoQr() {
-        return "QR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
+        return "QR-" + UUID.randomUUID().toString().substring(0, 16).toUpperCase(Locale.ROOT);
     }
 
     private LocalDateTime generarFechaAleatoriaUltimos12Meses(LocalDateTime ahora) {

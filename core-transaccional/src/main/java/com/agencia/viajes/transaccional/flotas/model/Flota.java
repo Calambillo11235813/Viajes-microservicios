@@ -21,7 +21,7 @@ public class Flota {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_bus")
-    private Integer id;
+    private Integer idBus;
 
     @Column(name = "placa", nullable = false, unique = true, length = 20)
     private String placa;

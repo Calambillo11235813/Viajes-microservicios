@@ -64,7 +64,7 @@ public interface ViajeProgramadoRepository extends JpaRepository<ViajeProgramado
      */
     @Query("""
             SELECT COUNT(v) FROM ViajeProgramado v
-            WHERE v.flota.id = :idBus
+            WHERE v.flota.idBus = :idBus
               AND v.estadoViaje != 'CANCELADO'
               AND v.fechaHoraSalida < :fin
               AND v.fechaHoraLlegada > :inicio

@@ -1,0 +1,75 @@
+<div class="bg-white rounded-lg shadow p-6 relative">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-semibold text-gray-800">Inventario de Flotas de Buses</h2>
+    <button (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-medium">
+      + Registrar Bus
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-10">
+    <span class="text-gray-500 font-medium">Cargando flotas...</span>
+  </div>
+
+  <div *ngIf="!isLoading && flotas.length === 0" class="text-center py-10">
+    <span class="text-gray-500 font-medium">No hay flotas registradas en el sistema.</span>
+  </div>
+
+  <div *ngIf="!isLoading && flotas.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let flota of flotas" class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <div class="bg-gray-100 p-4 border-b flex justify-between items-center">
+        <span class="font-bold text-gray-800">Bus #{{ flota.idBus }}</span>
+        <span class="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">DISPONIBLE</span>
+      </div>
+      <div class="p-4 space-y-2 text-sm text-gray-600">
+        <p><span class="font-medium text-gray-800">Placa:</span> {{ flota.placa }}</p>
+        <p><span class="font-medium text-gray-800">Tipo:</span> {{ flota.tipoBus }}</p>
+        <p><span class="font-medium text-gray-800">Capacidad:</span> {{ flota.capacidadTotalAsientos }} Asientos</p>
+      </div>
+      <div class="p-3 border-t bg-gray-50 flex justify-end space-x-2">
+        <button (click)="openModal(flota)" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Editar</button>
+        <button (click)="flota.idBus && eliminar(flota.idBus)" class="text-red-600 hover:text-red-800 font-medium text-sm">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Formulario -->
+  <div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <h3 class="text-lg font-bold text-gray-800 mb-4">{{ isEditing ? 'Editar Bus' : 'Nuevo Bus' }}</h3>
+      
+      <form [formGroup]="flotaForm" (ngSubmit)="onSubmit()" class="space-y-4">
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Placa</label>
+          <input type="text" formControlName="placa" placeholder="Ej: 1234-ABC" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Tipo de Bus</label>
+          <select formControlName="tipoBus" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+            <option value="">Seleccione...</option>
+            <option value="Cama">Cama</option>
+            <option value="Semicama">Semicama</option>
+            <option value="Leito">Leito</option>
+            <option value="Normal">Normal</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Capacidad de Asientos</label>
+          <input type="number" formControlName="capacidadTotalAsientos" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+        </div>
+
+        <div class="pt-4 flex justify-end space-x-3">
+          <button type="button" (click)="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="flotaForm.invalid" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:bg-blue-400">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>

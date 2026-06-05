@@ -23,6 +23,8 @@ type Query {
         fechaInicio: String!
         fechaFin: String!
     ): ReporteVentas!
+
+    listarFlotas: [Flota!]!
 }
 
 type Mutation {
@@ -108,6 +110,21 @@ type Mutation {
     ): ViajeDisponible!
 
     cancelarViajeProgramado(idViaje: Int!): Boolean!
+
+    crearFlota(
+        placa: String!
+        capacidadTotalAsientos: Int!
+        tipoBus: String!
+    ): Flota!
+
+    actualizarFlota(
+        idBus: Int!
+        placa: String
+        capacidadTotalAsientos: Int
+        tipoBus: String
+    ): Flota!
+
+    eliminarFlota(idBus: Int!): Boolean!
 }
 
 type ViajeDisponible {
@@ -223,4 +240,11 @@ type VentasPorFecha {
 type AuthResponse {
     token: String!
     usuario: UsuarioPerfil!
+}
+
+type Flota {
+    idBus: ID!
+    placa: String!
+    capacidadTotalAsientos: Int!
+    tipoBus: String!
 }

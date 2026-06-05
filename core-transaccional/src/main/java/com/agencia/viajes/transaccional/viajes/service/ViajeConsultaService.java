@@ -73,7 +73,7 @@ public class ViajeConsultaService {
                 ruta.getDuracionEstimadaHoras(),
                 ruta.getPrecioBase(),
                 ruta.getCategoriaTuristica(),
-                flota.getId(),
+                flota.getIdBus(),
                 flota.getTipoBus(),
                 flota.getCapacidadTotalAsientos(),
                 viaje.getEstadoViaje());
