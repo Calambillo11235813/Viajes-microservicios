@@ -48,6 +48,7 @@ const DRAWER_ITEMS: DrawerItem[] = [
   { key: 'MisViajes', label: 'Mis Viajes', icon: 'bus-outline', iconFocused: 'bus' },
   { key: 'BuscarImagen', label: 'Buscar por Imagen', icon: 'camera-outline', iconFocused: 'camera' },
   { key: 'TraducirVisual', label: 'Traducción Visual', icon: 'language-outline', iconFocused: 'language' },
+  { key: 'Notificaciones', label: 'Notificaciones', icon: 'notifications-outline', iconFocused: 'notifications' },
   { key: 'GenerarReel', label: 'Crear Reel Turístico', icon: 'film-outline', iconFocused: 'film' },
   { key: 'Perfil', label: 'Mi Perfil', icon: 'person-outline', iconFocused: 'person' },
 ];

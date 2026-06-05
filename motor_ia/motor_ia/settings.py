@@ -10,10 +10,21 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Permite importar la app api_destinos ubicada dentro del caso de uso CU-06.
+CU06_APP_DIR = BASE_DIR / "deeplearning" / "CU06_buscar_destinos"
+if str(CU06_APP_DIR) not in sys.path:
+    sys.path.insert(0, str(CU06_APP_DIR))
+
+# Permite importar la app api_reels ubicada dentro del caso de uso CU-07.
+CU07_APP_DIR = BASE_DIR / "deeplearning" / "CU07_generar_reels"
+if str(CU07_APP_DIR) not in sys.path:
+    sys.path.insert(0, str(CU07_APP_DIR))
 
 
 # Quick-start development settings - unsuitable for production
@@ -37,7 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'recomendaciones',
+    'rest_framework',
+    'api_destinos.apps.ApiDestinosConfig',
+    'api_reels.apps.ApiReelsConfig',
 ]
 
 MIDDLEWARE = [
@@ -116,6 +129,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Media files (archivos generados por la IA: reels, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Límite de tamaño para uploads de archivos (150 MB para videos)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 157286400      # 150 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 157286400      # 150 MB
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

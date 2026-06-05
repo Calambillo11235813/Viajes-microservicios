@@ -6,9 +6,13 @@ import SearchStackNavigator from '@/navigation/SearchStackNavigator';
 import MyTripsScreen from '@/screens/home/MyTripsScreen';
 import BuscarImagenScreen from '@/screens/home/BuscarImagenScreen';
 import TraducirVisualScreen from '@/screens/home/TraducirVisualScreen';
+import NotificacionesScreen from '@/screens/home/NotificacionesScreen';
 import GenerarReelScreen from '@/screens/home/GenerarReelScreen';
 import ProfileScreen from '@/screens/home/ProfileScreen';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/theme/theme';
+
+/** Número simulado de notificaciones no leídas */
+const NOTIF_BADGE_COUNT = 3;
 
 /**
  * Navegador principal con Drawer personalizado.
@@ -54,6 +58,7 @@ export default function DrawerNavigator() {
       case 'MisViajes': return 'Mis Viajes';
       case 'BuscarImagen': return 'Buscar por Imagen';
       case 'TraducirVisual': return 'Traducción Visual';
+      case 'Notificaciones': return 'Notificaciones';
       case 'GenerarReel': return 'Crear Reel Turístico';
       case 'Perfil': return 'Mi Perfil';
       default: return '';
@@ -74,6 +79,8 @@ export default function DrawerNavigator() {
         return <BuscarImagenScreen />;
       case 'TraducirVisual':
         return <TraducirVisualScreen />;
+      case 'Notificaciones':
+        return <NotificacionesScreen />;
       case 'GenerarReel':
         return <GenerarReelScreen />;
       case 'Perfil':
@@ -95,7 +102,19 @@ export default function DrawerNavigator() {
             <Ionicons name="menu" size={28} color={COLORS.primary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{getHeaderTitle()}</Text>
-          <View style={styles.headerSpacer} />
+          {/* Campanita de notificaciones en el header */}
+          <TouchableOpacity
+            style={styles.bellButton}
+            onPress={() => handleNavigate('Notificaciones')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
+            {activeSection !== 'Notificaciones' && NOTIF_BADGE_COUNT > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>{NOTIF_BADGE_COUNT}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
       )}
 
@@ -106,13 +125,28 @@ export default function DrawerNavigator() {
 
       {/* ─── Botón hamburguesa flotante para la sección Buscar (que tiene su propio header) ─── */}
       {!showCustomHeader && (
-        <TouchableOpacity
-          style={styles.floatingHamburger}
-          onPress={openDrawer}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="menu" size={26} color={COLORS.textLight} />
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            style={styles.floatingHamburger}
+            onPress={openDrawer}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="menu" size={26} color={COLORS.textLight} />
+          </TouchableOpacity>
+          {/* Campanita flotante en la sección Buscar */}
+          <TouchableOpacity
+            style={styles.floatingBell}
+            onPress={() => handleNavigate('Notificaciones')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="notifications-outline" size={22} color={COLORS.textLight} />
+            {NOTIF_BADGE_COUNT > 0 && (
+              <View style={styles.floatingBellBadge}>
+                <Text style={styles.floatingBellBadgeText}>{NOTIF_BADGE_COUNT}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </>
       )}
 
       {/* ─── Drawer lateral animado ─── */}
@@ -152,8 +186,27 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     flex: 1,
   },
-  headerSpacer: {
-    width: 36,
+  bellButton: {
+    padding: SPACING.xs,
+    position: 'relative',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: 0,
+    right: -2,
+    backgroundColor: COLORS.danger,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.surface,
+  },
+  bellBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textLight,
   },
 
   /* ── Contenido ── */
@@ -178,5 +231,40 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+  },
+  floatingBell: {
+    position: 'absolute',
+    top: SPACING.xxl + SPACING.xs,
+    right: SPACING.md,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: COLORS.primary + 'CC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 50,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  floatingBellBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: COLORS.danger,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  floatingBellBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textLight,
   },
 });

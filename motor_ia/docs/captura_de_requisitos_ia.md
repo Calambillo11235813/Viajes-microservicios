@@ -12,7 +12,7 @@ A continuación se detallan los flujos exactos que el agente debe mapear a Servi
 ### 📸 Modelos de Deep Learning (Visión Computacional y NLP)
 Estos endpoints procesarán archivos multimedia. Se espera el uso de librerías como TensorFlow/Keras, OpenCV o Tesseract.
 
-* [cite_start]**CU06: Buscar destinos mediante imágenes:** * *Descripción:* Analizar una fotografía subida por el usuario para identificar características geográficas o paisajes, y sugerir paquetes turísticos similares del catálogo[cite: 1734].
+* [cite_start]**CU06: Buscar destinos mediante imágenes:** * *Descripción:* Analizar una fotografía subida por el usuario e identificar que lugar es [cite: 1734].
   * *Técnica esperada:* Redes Neuronales Convolucionales (CNN) / Visión por computadora.
 
 * **CU07: Generar videos turísticos automáticamente:**

@@ -3,7 +3,7 @@
 ## 📌 Contexto del Proyecto
 Estás operando en el **Microservicio B (Motor de Inteligencia Artificial)** de una plataforma de Agencia de Viajes. Este componente actúa como el cerebro analítico del sistema.
 * **Responsabilidad Principal:** Ejecutar modelos de Machine Learning (Supervisado/No Supervisado) y Deep Learning para inferencia en tiempo real y análisis de datos.
-* **Límites Arquitectónicos:** Este servicio **NO** gestiona el inventario transaccional de pasajes, **NO** procesa pagos y **NO** emite documentos. Funciona como una API interna que recibe peticiones (con payloads JSON o URLs de imágenes de Amazon S3) desde el Microservicio A, procesa los algoritmos y devuelve predicciones estructuradas.
+* **Límites Arquitectónicos:** Este servicio **NO** gestiona el inventario transaccional de pasajes, **NO** procesa pagos y **NO** emite documentos. Funciona como una API interna que recibe peticiones (con payloads JSON ) desde el Microservicio A, procesa los algoritmos y devuelve predicciones estructuradas.
 
 ## 🛠️ Stack Tecnológico
 * **Lenguaje:** Python 3.10+

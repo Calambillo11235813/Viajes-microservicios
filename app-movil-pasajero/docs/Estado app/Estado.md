@@ -30,3 +30,27 @@
 - [x] **CU-06: Buscar destinos mediante imágenes (IA)**
   - *Fecha de finalización:* 2026-06-02
   - *Resumen:* Pantalla `BuscarImagenScreen` con integración de `expo-image-picker` para galería y cámara. Simulación de análisis de IA (mock con setTimeout de 3s) que detecta destinos turísticos bolivianos aleatorios con porcentaje de confianza. Integrada en el CustomDrawer como nueva sección de navegación.
+
+- [x] **CU-07: Generación automática de reels turísticos**
+  - *Fecha de finalización:* 2026-06-03
+  - *Resumen:* Pantalla `GenerarReelScreen` que permite la selección de videos desde la galería (`expo-image-picker`). Incluye simulación de procesamiento inteligente con `ActivityIndicator` nativo. Una vez finalizado el análisis, reproduce el resultado final en bucle continuo utilizando el componente nativo `<Video>` de la librería `expo-av`.
+
+- [x] **CU-08: Traducir texto mediante video (IA)**
+  - *Fecha de finalización:* 2026-06-03
+  - *Resumen:* Pantalla `TraducirVisualScreen` con integración de `expo-camera` (`CameraView`). Gestiona los permisos de cámara dinámicamente y proporciona una interfaz de realidad aumentada para enfocar texto. Simula procesamiento de OCR y NLP (traducción Inglés ↔ Español) superponiendo el resultado estático directamente sobre la vista de la cámara.
+
+- [x] **CU-13: Notificaciones push de estado del viaje**
+  - *Fecha de finalización:* 2026-06-03
+  - *Resumen:* Pantalla `NotificacionesScreen` con centro de alertas tipificadas (éxito/alerta/info). Integra `expo-notifications` para notificaciones nativas del SO con `setNotificationHandler` global, canal Android de alta prioridad, permisos dinámicos y automatización reactiva mediante `useEffect` + `setInterval` controlado por un `Switch` nativo. Incluye campanita con badge rojo en el header principal (tanto flotante como inline) y acceso desde el `CustomDrawer`.
+
+---
+
+## 🛠️ Mejoras Arquitectónicas y UX/UI
+
+- [x] **Migración de Navegación: Custom Drawer**
+  - *Fecha de finalización:* 2026-06-02
+  - *Resumen:* Se reemplazó completamente el `BottomTabNavigator` por un `DrawerNavigator` customizado y nativo (100% implementado con la API `Animated`), resolviendo problemas de inestabilidad (`TurboModule` crashes en Expo Go SDK 54). Esta arquitectura permite inyectar vistas anidadas condicionalmente usando un menú deslizable estético que contiene opciones para Buscar, Mis Viajes, Perfil, Buscar Imagen, Reels y Traducción.
+
+- [x] **Campanita con Badge en Header**
+  - *Fecha de finalización:* 2026-06-03
+  - *Resumen:* Se añadió un ícono de campana (`notifications-outline`) con un badge rojo circular que muestra el contador de notificaciones no leídas. Se implementó tanto en el header fijo de las secciones internas como en un botón flotante para la sección Buscar (simétrico al botón hamburguesa). Al tocar, navega al centro de notificaciones.
