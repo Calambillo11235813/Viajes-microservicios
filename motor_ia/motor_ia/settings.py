@@ -26,6 +26,11 @@ CU07_APP_DIR = BASE_DIR / "deeplearning" / "CU07_generar_reels"
 if str(CU07_APP_DIR) not in sys.path:
     sys.path.insert(0, str(CU07_APP_DIR))
 
+# Permite importar la app api_traductor ubicada dentro del caso de uso CU-08.
+CU08_APP_DIR = BASE_DIR / "deeplearning" / "CU08_traductor_visual"
+if str(CU08_APP_DIR) not in sys.path:
+    sys.path.insert(0, str(CU08_APP_DIR))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -51,6 +56,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api_destinos.apps.ApiDestinosConfig',
     'api_reels.apps.ApiReelsConfig',
+    'api_traductor.apps.ApiTraductorConfig',
 ]
 
 MIDDLEWARE = [

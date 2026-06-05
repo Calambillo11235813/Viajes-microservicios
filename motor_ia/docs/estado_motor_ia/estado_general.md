@@ -8,7 +8,7 @@
 |------|--------|
 | Framework | Django 5.2 + DRF configurado |
 | Servidor local | `python manage.py runserver` → `http://127.0.0.1:8000/` |
-| Casos de uso activos | 2 de 5 (CU06, CU07) |
+| Casos de uso activos | 3 de 5 (CU06, CU07, CU08) |
 | Estado general | En desarrollo |
 
 ---
@@ -21,7 +21,9 @@
 - [x] **CU07: Generar videos turísticos automáticamente**
   - Endpoint `POST /api/generar-reel/` operativo. MobileNetV2 + OpenCV para selección inteligente de escenas.
   - Detalle: [CU07_Generar_Reels_2026-06-05.md](./CU07_Generar_Reels_2026-06-05.md)
-- [ ] **CU08: Traducir texto mediante video**
+- [x] **CU08: Traducir texto mediante video**
+  - Endpoint `POST /api/traducir-imagen/` operativo. EasyOCR (CRAFT+CRNN) + GoogleTranslator. 5 idiomas: es, en, it, fr, de.
+  - Detalle: [CU08_Traductor_Visual_2026-06-05.md](./CU08_Traductor_Visual_2026-06-05.md)
 
 ---
 

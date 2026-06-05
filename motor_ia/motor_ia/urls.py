@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/predict/', include('api_destinos.urls')),
     path('api/generar-reel/', include('api_reels.urls')),
+    path('api/traducir-imagen/', include('api_traductor.urls')),
 ]
 
 # Servir archivos media (reels generados) en modo desarrollo
