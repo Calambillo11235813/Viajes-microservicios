@@ -13,6 +13,7 @@ Este modulo NO conoce HTTP ni Django; solo recibe rutas de archivos
 y parametros, y devuelve un diccionario con los resultados.
 """
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from deep_translator import GoogleTranslator
@@ -21,6 +22,28 @@ from .model_loader import IDIOMAS_SOPORTADOS, lector_ocr
 
 # Umbral minimo de confianza para considerar una deteccion valida
 UMBRAL_CONFIANZA = 0.5
+
+# Numero maximo de traducciones concurrentes. Las llamadas a GoogleTranslator
+# son I/O-bound (red), por lo que paralelizarlas reduce drasticamente la
+# latencia total cuando hay muchas detecciones en una sola imagen.
+MAX_WORKERS_TRADUCCION = 8
+
+
+def _traducir_seguro(traductor: GoogleTranslator, texto: str) -> str:
+    """Traduce un texto capturando cualquier error de red/servicio.
+
+    Args:
+        traductor: Instancia de GoogleTranslator ya configurada.
+        texto: Texto original a traducir.
+
+    Returns:
+        El texto traducido, o el original como respaldo si la traduccion falla.
+    """
+    try:
+        resultado = traductor.translate(texto)
+        return resultado if resultado else texto
+    except Exception:
+        return "[Error en traduccion]"
 
 
 def procesar_traduccion(
@@ -81,21 +104,33 @@ def procesar_traduccion(
     except Exception as e:
         raise RuntimeError(f"Error en el motor OCR: {e}") from e
 
-    # -- 2. Filtrado por confianza y traduccion -----------------------------
+    # -- 2. Filtrado por confianza ------------------------------------------
+    detecciones_validas = [
+        (caja_delimitadora, texto, confianza)
+        for (caja_delimitadora, texto, confianza) in resultados_ocr
+        if confianza >= UMBRAL_CONFIANZA
+    ]
+
+    # -- 3. Traduccion en paralelo ------------------------------------------
+    # Cada llamada a GoogleTranslator es una peticion de red independiente.
+    # Ejecutarlas concurrentemente convierte N viajes secuenciales en unos
+    # pocos lotes paralelos, recortando la latencia de forma notable.
     traductor = GoogleTranslator(source=idioma_origen, target=idioma_destino)
+    textos = [texto for (_, texto, _) in detecciones_validas]
+
+    if textos:
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS_TRADUCCION) as executor:
+            traducciones = list(
+                executor.map(lambda t: _traducir_seguro(traductor, t), textos)
+            )
+    else:
+        traducciones = []
+
+    # -- 4. Armado de la respuesta ------------------------------------------
     detecciones: list[dict[str, Any]] = []
-
-    for (caja_delimitadora, texto, confianza) in resultados_ocr:
-        if confianza < UMBRAL_CONFIANZA:
-            continue
-
-        # Traducir el texto detectado
-        try:
-            traduccion = traductor.translate(texto)
-        except Exception:
-            traduccion = "[Error en traduccion]"
-
-        # Extraer coordenadas de bounding box
+    for (caja_delimitadora, texto, confianza), traduccion in zip(
+        detecciones_validas, traducciones
+    ):
         # caja_delimitadora tiene 4 esquinas: [top_left, top_right, bottom_right, bottom_left]
         puntos = [list(map(int, p)) for p in caja_delimitadora]
         top_left = puntos[0]

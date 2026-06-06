@@ -7,7 +7,7 @@
  */
 
 // Cambia esta IP por la de tu computadora
-const LOCAL_IP = '192.168.0.5';
+const LOCAL_IP = '192.168.0.3';
 
 export const CONFIG = {
   // Microservicio A: Spring Boot (GraphQL - Transaccional)
@@ -17,4 +17,5 @@ export const CONFIG = {
   AI_BASE_URL: `http://${LOCAL_IP}:8000`,
   AI_API_URL: `http://${LOCAL_IP}:8000/api/predict/`,
   AI_REEL_URL: `http://${LOCAL_IP}:8000/api/generar-reel/`,
+  AI_TRANSLATE_URL: `http://${LOCAL_IP}:8000/api/traducir-imagen/`,
 };

@@ -9,11 +9,29 @@ class ApiTraductorConfig(AppConfig):
     verbose_name = 'CU-08 Traducir Texto Mediante Imagen'
 
     def ready(self) -> None:
-        """Importa el singleton para que este disponible al arrancar.
+        """Precarga los modelos OCR mas usados al arrancar Django.
 
-        Nota: A diferencia de CU06/CU07, NO precargamos los modelos OCR aqui
-        porque EasyOCR carga modelos por idioma bajo demanda. Esto evita
-        cargar modelos innecesarios al arrancar Django. El Singleton se crea
-        pero los readers se cargan lazy en la primera peticion de cada idioma.
+        Antes los readers se cargaban de forma perezosa (lazy) en la primera
+        peticion de cada idioma, lo que hacia que esa primera traduccion
+        tardara varios segundos extra mientras EasyOCR cargaba las redes
+        CRAFT + CRNN. Aqui los precargamos para los idiomas mas comunes
+        (espanol e ingles) y asi la primera peticion ya responde rapido.
+
+        Se usa la guarda ``RUN_MAIN`` para evitar que el autoreloader de
+        Django cargue los modelos dos veces: con ``runserver`` el proceso que
+        realmente atiende las peticiones es el unico con ``RUN_MAIN == 'true'``
+        (el proceso vigilante no tiene la variable). Si se ejecuta con
+        ``--noreload``, los readers se cargaran de forma perezosa en la primera
+        peticion.
         """
-        from .model_loader import lector_ocr  # noqa: F401
+        import os
+
+        from .model_loader import lector_ocr
+
+        if os.environ.get('RUN_MAIN') != 'true':
+            return
+
+        try:
+            lector_ocr.precargar('es', 'en')
+        except Exception as e:  # pragma: no cover - defensivo en arranque
+            print(f"[CU-08] No se pudieron precargar los modelos OCR: {e}")

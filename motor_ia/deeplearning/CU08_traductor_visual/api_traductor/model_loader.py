@@ -85,18 +85,66 @@ class LectorOCR:
 
         return self._readers[idioma]
 
-    def detectar_texto(self, ruta_imagen: str, idioma: str) -> list[tuple]:
+    def precargar(self, *idiomas: str) -> None:
+        """Carga por adelantado los readers de los idiomas indicados.
+
+        Pensado para llamarse al arrancar Django (en ``apps.py``) y asi evitar
+        que la primera peticion de cada idioma pague el costo de cargar las
+        redes neuronales de EasyOCR.
+
+        Args:
+            *idiomas: Codigos de idioma a precargar (ej: 'es', 'en').
+        """
+        for idioma in idiomas:
+            if idioma in IDIOMAS_SOPORTADOS:
+                self._obtener_reader(idioma)
+
+    def detectar_texto(
+        self, ruta_imagen: str, idioma: str, max_lado: int = 1600
+    ) -> list[tuple]:
         """Ejecuta OCR sobre una imagen y retorna las detecciones crudas.
+
+        Para acelerar la inferencia en CPU, la imagen se reduce si su lado
+        mayor supera ``max_lado`` pixeles. Las coordenadas de los bounding
+        boxes se reescalan al tamano original para no alterar el contrato de
+        la API.
 
         Args:
             ruta_imagen: Ruta absoluta a la imagen a procesar.
             idioma: Codigo del idioma del texto en la imagen.
+            max_lado: Lado mayor maximo (px) antes de redimensionar.
 
         Returns:
             Lista de tuplas (bounding_box, texto, confianza) de EasyOCR.
         """
         reader = self._obtener_reader(idioma)
-        return reader.readtext(ruta_imagen)
+
+        import cv2
+
+        imagen = cv2.imread(ruta_imagen)
+        if imagen is None:
+            # Fallback: dejar que EasyOCR lea el archivo directamente.
+            return reader.readtext(ruta_imagen)
+
+        alto, ancho = imagen.shape[:2]
+        lado_mayor = max(alto, ancho)
+        escala = 1.0
+        if lado_mayor > max_lado:
+            escala = max_lado / lado_mayor
+            nuevo_tam = (int(ancho * escala), int(alto * escala))
+            imagen = cv2.resize(imagen, nuevo_tam, interpolation=cv2.INTER_AREA)
+
+        resultados = reader.readtext(imagen)
+        if escala == 1.0:
+            return resultados
+
+        # Reescalar las coordenadas al tamano original de la imagen.
+        factor = 1.0 / escala
+        resultados_reescalados = []
+        for (caja, texto, confianza) in resultados:
+            caja_original = [[coord * factor for coord in punto] for punto in caja]
+            resultados_reescalados.append((caja_original, texto, confianza))
+        return resultados_reescalados
 
 
 # Instancia global (Singleton)
