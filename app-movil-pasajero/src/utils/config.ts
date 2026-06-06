@@ -11,7 +11,7 @@ const LOCAL_IP = '192.168.0.3';
 
 export const CONFIG = {
   // Microservicio A: Spring Boot (GraphQL - Transaccional)
-  GRAPHQL_URL: `http://${LOCAL_IP}:9090/graphql`,
+  GRAPHQL_URL: `http://${LOCAL_IP}:8080/graphql`,
 
   // Microservicio B: Django (Motor IA)
   AI_BASE_URL: `http://${LOCAL_IP}:8000`,

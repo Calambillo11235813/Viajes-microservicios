@@ -75,4 +75,25 @@ public interface ViajeProgramadoRepository extends JpaRepository<ViajeProgramado
             @Param("inicio") LocalDateTime inicio,
             @Param("fin") LocalDateTime fin,
             @Param("idViajeExcluido") Integer idViajeExcluido);
+
+    /**
+     * Busca viajes programados futuros hacia un destino específico (desde cualquier origen).
+     *
+     * @param destino ciudad de destino solicitada.
+     * @param momentoActual fecha y hora a partir de la cual buscar.
+     * @return viajes programados futuros hacia ese destino.
+     */
+    @Query("""
+            SELECT viaje
+            FROM ViajeProgramado viaje
+            JOIN FETCH viaje.rutaDestino ruta
+            JOIN FETCH viaje.flota flota
+            WHERE LOWER(ruta.ciudadDestino) = LOWER(:destino)
+              AND viaje.fechaHoraSalida > :momentoActual
+              AND viaje.estadoViaje = 'PROGRAMADO'
+            ORDER BY viaje.fechaHoraSalida ASC
+            """)
+    List<ViajeProgramado> buscarDisponiblesHaciaDestinoFuturos(
+            @Param("destino") String destino,
+            @Param("momentoActual") LocalDateTime momentoActual);
 }

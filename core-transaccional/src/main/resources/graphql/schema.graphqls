@@ -25,6 +25,8 @@ type Query {
     ): ReporteVentas!
 
     listarFlotas: [Flota!]!
+
+    buscarViajesPorDestinoTuristico(nombreDestino: String!): DestinoViajesResponse!
 }
 
 type Mutation {
@@ -247,4 +249,16 @@ type Flota {
     placa: String!
     capacidadTotalAsientos: Int!
     tipoBus: String!
+}
+
+type DestinoTuristicoInfo {
+    id: ID!
+    nombreTuristico: String!
+    departamento: String!
+    descripcion: String
+}
+
+type DestinoViajesResponse {
+    destino: DestinoTuristicoInfo!
+    viajesDisponibles: [ViajeDisponible!]!
 }
