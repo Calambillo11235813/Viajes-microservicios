@@ -14,5 +14,7 @@ export const CONFIG = {
   GRAPHQL_URL: `http://${LOCAL_IP}:9090/graphql`,
 
   // Microservicio B: Django (Motor IA)
+  AI_BASE_URL: `http://${LOCAL_IP}:8000`,
   AI_API_URL: `http://${LOCAL_IP}:8000/api/predict/`,
+  AI_REEL_URL: `http://${LOCAL_IP}:8000/api/generar-reel/`,
 };

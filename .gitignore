@@ -97,3 +97,7 @@ yarn.lock
 
 # Properties
 *.properties
+core-transaccional/src/main/resources/application.properties
+
+# Django Media
+motor_ia/media/
