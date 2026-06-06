@@ -13,21 +13,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SPACING, TYPOGRAPHY, globalStyles } from '@/theme/theme';
+import { CONFIG } from '@/utils/config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/**
- * Destinos simulados que el "motor de IA" puede "detectar".
- * Se elige uno al azar para hacer la simulación más dinámica.
- */
-const DESTINOS_SIMULADOS = [
-  { nombre: 'Salar de Uyuni', departamento: 'Potosí', confianza: 96 },
-  { nombre: 'Lago Titicaca', departamento: 'La Paz', confianza: 93 },
-  { nombre: 'Misiones Jesuíticas de Chiquitos', departamento: 'Santa Cruz', confianza: 89 },
-  { nombre: 'Valle de la Luna', departamento: 'La Paz', confianza: 91 },
-  { nombre: 'Parque Nacional Torotoro', departamento: 'Potosí', confianza: 87 },
-  { nombre: 'Cerro Rico de Potosí', departamento: 'Potosí', confianza: 94 },
-];
+interface DestinoDetectado {
+  nombre: string;
+  departamento: string;
+  confianza: number;
+}
 
 /** Estados posibles de la pantalla */
 type EstadoPantalla = 'inicial' | 'imagen_seleccionada' | 'analizando' | 'resultado';
@@ -44,7 +38,7 @@ type EstadoPantalla = 'inicial' | 'imagen_seleccionada' | 'analizando' | 'result
 export default function BuscarImagenScreen() {
   const [estado, setEstado] = useState<EstadoPantalla>('inicial');
   const [imagenUri, setImagenUri] = useState<string | null>(null);
-  const [destinoDetectado, setDestinoDetectado] = useState<typeof DESTINOS_SIMULADOS[0] | null>(null);
+  const [destinoDetectado, setDestinoDetectado] = useState<DestinoDetectado | null>(null);
 
   /**
    * Abre la galería del dispositivo para seleccionar una imagen.
@@ -102,17 +96,72 @@ export default function BuscarImagenScreen() {
   };
 
   /**
-   * Simula el análisis de IA con un delay de 3 segundos.
-   * Selecciona un destino aleatorio del arreglo de mocks.
+   * Envía la imagen al Motor IA (Django) para su análisis real mediante Deep Learning.
    */
-  const analizarImagen = () => {
+  const analizarImagen = async () => {
+    if (!imagenUri) return;
+
     setEstado('analizando');
 
-    setTimeout(() => {
-      const indice = Math.floor(Math.random() * DESTINOS_SIMULADOS.length);
-      setDestinoDetectado(DESTINOS_SIMULADOS[indice]);
+    try {
+      // 1. Preparar el archivo de imagen para envío (multipart/form-data)
+      const filename = imagenUri.split('/').pop() || 'imagen.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      const formData = new FormData();
+      // Nota: React Native requiere este formato específico (any) para enviar archivos
+      formData.append('imagen', {
+        uri: imagenUri,
+        name: filename,
+        type: type,
+      } as any);
+
+      // 2. Hacer la petición POST al endpoint de predicción (Django Motor IA)
+      const response = await fetch(CONFIG.AI_API_URL, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const json = await response.json();
+
+      // El servidor responde con status != 200 y { error } ante fallos.
+      if (!response.ok) {
+        throw new Error(json.error || 'Error desconocido en el servidor de IA.');
+      }
+
+      // 3. Procesar respuesta y actualizar estado.
+      // Respuesta reconocida:   { reconocido: true, destino: "Cristo_ConCordia", confianza: 0.95 }
+      // Respuesta no reconocida: { reconocido: false, mensaje: "...", confianza_maxima: 0.4 }
+      if (!json.reconocido) {
+        Alert.alert(
+          'Sin coincidencias',
+          json.mensaje || 'La imagen no corresponde a ningún destino conocido.'
+        );
+        setEstado('imagen_seleccionada');
+        return;
+      }
+
+      const nombreDestino = json.destino.replace(/_/g, ' '); // Ej: "Cristo_ConCordia" -> "Cristo ConCordia"
+
+      setDestinoDetectado({
+        nombre: nombreDestino,
+        departamento: 'Bolivia', // TODO: Cruzar con BD GraphQL para sacar datos adicionales
+        confianza: Math.round(json.confianza * 100), // Convertir 0.95 a 95%
+      });
       setEstado('resultado');
-    }, 3000);
+
+    } catch (error: any) {
+      console.error('Error al analizar imagen con IA:', error);
+      Alert.alert(
+        'Error de Conexión',
+        error.message || 'No se pudo conectar con el motor de Inteligencia Artificial. Verifica que el servidor Django esté corriendo y la IP sea correcta.'
+      );
+      setEstado('imagen_seleccionada');
+    }
   };
 
   /**

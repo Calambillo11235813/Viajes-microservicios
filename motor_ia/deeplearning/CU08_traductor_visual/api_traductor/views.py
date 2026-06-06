@@ -25,8 +25,10 @@ TIPOS_IMAGEN_VALIDOS = {
 }
 
 
+import uuid
+
 def _guardar_imagen_temporal(uploaded_file) -> str:
-    """Guarda una imagen subida en un archivo temporal y retorna su ruta.
+    """Guarda una imagen subida en un archivo temporal seguro y retorna su ruta.
 
     Args:
         uploaded_file: Objeto UploadedFile de Django.
@@ -36,7 +38,13 @@ def _guardar_imagen_temporal(uploaded_file) -> str:
     """
     directorio_tmp = os.path.join(settings.MEDIA_ROOT, 'traductor', 'tmp')
     os.makedirs(directorio_tmp, exist_ok=True)
-    ruta = os.path.join(directorio_tmp, uploaded_file.name)
+    
+    # Generar un nombre seguro (UUID) para evitar bugs de OpenCV en Windows
+    # al intentar leer rutas con caracteres como ñ, tildes, etc.
+    _, extension = os.path.splitext(uploaded_file.name)
+    nombre_seguro = f"{uuid.uuid4().hex}{extension}"
+    ruta = os.path.join(directorio_tmp, nombre_seguro)
+    
     with open(ruta, 'wb') as destino:
         for chunk in uploaded_file.chunks():
             destino.write(chunk)

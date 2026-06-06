@@ -67,6 +67,15 @@ class LectorOCR:
 
         if idioma not in self._readers:
             print(f"[CU-08] Cargando modelo OCR para idioma: {IDIOMAS_SOPORTADOS[idioma]}...")
+            
+            # --- PARCHE WINDOWS ---
+            # EasyOCR intenta imprimir una barra de progreso con el caracter '█' (\u2588)
+            # al descargar modelos, lo que causa UnicodeEncodeError en consola Windows cp1252.
+            # Sobrescribimos el hook de progreso para que sea silencioso.
+            import easyocr.utils
+            easyocr.utils.progress_hook = lambda count, blockSize, totalSize: None
+            # ----------------------
+            
             self._readers[idioma] = easyocr.Reader(
                 [idioma],
                 gpu=False,

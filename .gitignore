@@ -94,3 +94,6 @@ yarn.lock
 # Misc
 .classpath
 *.launch
+
+# Properties
+*.properties
