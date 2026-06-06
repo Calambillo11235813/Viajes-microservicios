@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Image,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
@@ -13,8 +12,9 @@ import {
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Speech from 'expo-speech';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, TYPOGRAPHY, globalStyles } from '@/theme/theme';
+import { COLORS, TYPOGRAPHY, globalStyles } from '@/theme/theme';
 import { CONFIG } from '@/utils/config';
+import { styles } from './styles/TraducirVisualScreen.styles';
 
 type EstadoTraduccion = 'enfocando' | 'traduciendo' | 'resultado';
 
@@ -234,7 +234,7 @@ export default function TraducirVisualScreen() {
             >
               <Image
                 source={{ uri: imagenCapturada }}
-                style={StyleSheet.absoluteFillObject}
+                style={styles.capturedImage}
                 resizeMode="stretch"
               />
               {listaDetecciones.map((d: any, index: number) => {
@@ -338,251 +338,3 @@ export default function TraducirVisualScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xl,
-    backgroundColor: COLORS.background,
-  },
-  permissionText: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginVertical: SPACING.lg,
-  },
-  camera: {
-    flex: 1,
-  },
-
-  /* ── Overlays Generales ── */
-  topOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingTop: SPACING.xxl * 1.5,
-    paddingHorizontal: SPACING.md,
-    zIndex: 10,
-  },
-  bottomOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: SPACING.xxl * 1.5,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  centerOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  /* ── Barra de Selección de Idiomas ── */
-  langSelectorBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    borderRadius: 20,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  langButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: SPACING.xs,
-  },
-  langTextLabel: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.6)',
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  langTextValue: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.textLight,
-  },
-  swapButton: {
-    paddingHorizontal: SPACING.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  /* ── Recuadro de Enfoque ── */
-  focusFrame: {
-    width: 280,
-    height: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
-  focusText: {
-    ...TYPOGRAPHY.body,
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.9)',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  corner: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    borderColor: COLORS.accent,
-  },
-  topLeft: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4 },
-  topRight: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4 },
-  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4 },
-  bottomRight: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4 },
-
-  /* ── Botones Inferiores ── */
-  btnTranslate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xxl,
-    borderRadius: 30,
-    gap: SPACING.sm,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-  },
-  btnTranslateText: {
-    ...TYPOGRAPHY.h2,
-    color: COLORS.textLight,
-  },
-  btnRetry: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: 30,
-    gap: SPACING.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  btnRetryText: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.textLight,
-  },
-
-  /* ── Estados de IA ── */
-  processingCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: SPACING.xl,
-    borderRadius: 20,
-    alignItems: 'center',
-    elevation: 10,
-  },
-  processingText: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: COLORS.primary,
-    marginTop: SPACING.md,
-    fontWeight: '600',
-  },
-  arOverlay: { // FIX: Realidad Aumentada
-    ...StyleSheet.absoluteFillObject,
-  },
-  arLabel: { // FIX: Realidad Aumentada
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    color: COLORS.textLight,
-    padding: 4,
-    borderRadius: 4,
-    fontSize: 12,
-    overflow: 'hidden',
-  },
-  arNoTextBanner: { // FIX: Realidad Aumentada
-    position: 'absolute',
-    bottom: '40%',
-    alignSelf: 'center',
-    left: SPACING.xl,
-    right: SPACING.xl,
-    alignItems: 'center',
-  },
-  audioControls: { // FIX: Control de audio
-    flexDirection: 'row',
-    gap: SPACING.md,
-    marginBottom: SPACING.md,
-  },
-  btnSpeak: {
-    padding: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    elevation: 2,
-  },
-  btnStopSpeak: { // FIX: Control de audio
-    padding: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: COLORS.danger,
-    elevation: 2,
-  },
-
-  /* ── Modal de Selección de Idioma ── */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: SPACING.lg,
-    maxHeight: '60%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-    paddingBottom: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  modalTitle: {
-    ...TYPOGRAPHY.h2,
-    color: COLORS.textPrimary,
-  },
-  langOptionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  langOptionSelected: {
-    backgroundColor: COLORS.primary + '10',
-    borderRadius: 8,
-    borderBottomWidth: 0,
-  },
-  langOptionText: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: COLORS.textPrimary,
-  },
-  langOptionTextSelected: {
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-});

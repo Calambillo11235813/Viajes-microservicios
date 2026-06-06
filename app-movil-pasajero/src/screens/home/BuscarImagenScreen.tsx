@@ -2,20 +2,22 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  ScrollView,
+  FlatList,
   Alert,
-  Dimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { COLORS, SPACING, TYPOGRAPHY, globalStyles } from '@/theme/theme';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { COLORS, SPACING, globalStyles } from '@/theme/theme';
 import { CONFIG } from '@/utils/config';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { apolloClient } from '@/graphql/client';
+import { BUSCAR_VIAJES_DESTINO_TURISTICO } from '@/graphql/queries/viajes';
+import SelectModal from '@/components/SelectModal';
+import { styles } from './styles/BuscarImagenScreen.styles';
 
 interface DestinoDetectado {
   nombre: string;
@@ -39,6 +41,40 @@ export default function BuscarImagenScreen() {
   const [estado, setEstado] = useState<EstadoPantalla>('inicial');
   const [imagenUri, setImagenUri] = useState<string | null>(null);
   const [destinoDetectado, setDestinoDetectado] = useState<DestinoDetectado | null>(null);
+
+  const [viajesData, setViajesData] = useState<any[]>([]);
+  const [loadingViajes, setLoadingViajes] = useState<boolean>(false);
+  const [errorViajes, setErrorViajes] = useState<Error | null>(null);
+
+  // --- Estados para Paginación y Filtros ---
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [filtroFecha, setFiltroFecha] = useState('');
+  const [filtroOrigen, setFiltroOrigen] = useState('');
+
+  // Estados para modales de UI
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showOriginModal, setShowOriginModal] = useState(false);
+  const [dateObj, setDateObj] = useState(new Date());
+
+  const origenesBolivia = ['Todos', 'La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosi', 'Tarija', 'Chuquisaca', 'Beni', 'Pando'];
+
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDateObj(selectedDate);
+      setFiltroFecha(selectedDate.toISOString().split('T')[0]);
+    }
+  };
+
+  const onSelectOrigen = (option: string) => {
+    if (option === 'Todos') {
+      setFiltroOrigen('');
+    } else {
+      setFiltroOrigen(option);
+    }
+    setShowOriginModal(false);
+  };
 
   /**
    * Abre la galería del dispositivo para seleccionar una imagen.
@@ -171,14 +207,78 @@ export default function BuscarImagenScreen() {
     setEstado('inicial');
     setImagenUri(null);
     setDestinoDetectado(null);
+    setViajesData([]);
+    setErrorViajes(null);
+    setPage(0);
+    setHasMore(true);
+    setFiltroFecha('');
+    setFiltroOrigen('');
+    setDateObj(new Date());
   };
 
-  return (
-    <ScrollView
-      style={globalStyles.safeAreaContainer}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
+  const aplicarFiltros = () => {
+    setPage(0);
+    setHasMore(true);
+    setViajesData([]);
+    // Usamos timeout para dejar que el estado se actualice antes de cargar
+    setTimeout(() => {
+      cargarRutas(0);
+    }, 0);
+  };
+
+  const verRutasDisponibles = () => {
+    aplicarFiltros();
+  };
+
+  const cargarRutas = async (pageNum: number) => {
+    if (!destinoDetectado || loadingViajes) return;
+    if (pageNum === 0) {
+      setViajesData([]);
+    }
+
+    setLoadingViajes(true);
+    setErrorViajes(null);
+    try {
+      const response = await apolloClient.query({
+        query: BUSCAR_VIAJES_DESTINO_TURISTICO,
+        variables: {
+          nombreDestino: destinoDetectado.nombre,
+          page: pageNum,
+          size: 10,
+          fecha: filtroFecha || null,
+          origen: filtroOrigen || null
+        },
+        fetchPolicy: 'network-only'
+      });
+
+      const data: any = response.data;
+      const nuevosViajes = data?.buscarViajesPorDestinoTuristico?.viajesDisponibles || [];
+      if (nuevosViajes.length < 10) {
+        setHasMore(false);
+      }
+
+      if (pageNum === 0) {
+        setViajesData(nuevosViajes);
+      } else {
+        setViajesData(prev => [...prev, ...nuevosViajes]);
+      }
+      setPage(pageNum);
+    } catch (err: any) {
+      console.error("Error GraphQL al cargar viajes:", err);
+      setErrorViajes(err);
+    } finally {
+      setLoadingViajes(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loadingViajes && hasMore && viajesData.length > 0) {
+      cargarRutas(page + 1);
+    }
+  };
+
+  const renderHeader = () => (
+    <View style={styles.scrollContent}>
       {/* ─── Encabezado ─── */}
       <View style={styles.headerSection}>
         <View style={styles.iconCircle}>
@@ -267,10 +367,55 @@ export default function BuscarImagenScreen() {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.btnRoutes} activeOpacity={0.8}>
+          {/* Filtros Opcionales */}
+          <View style={styles.filtersContainer}>
+            <Text style={styles.filtersTitle}>Filtros (Opcionales)</Text>
+            <View style={globalStyles.inputContainer}>
+              <Text style={globalStyles.inputLabel}>Origen</Text>
+              <TouchableOpacity
+                style={globalStyles.inputField}
+                onPress={() => setShowOriginModal(true)}
+              >
+                <Text style={{ color: filtroOrigen ? COLORS.textPrimary : COLORS.placeholder }}>
+                  {filtroOrigen || 'Seleccionar Origen (Todos)'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={globalStyles.inputContainer}>
+              <Text style={globalStyles.inputLabel}>Fecha (YYYY-MM-DD)</Text>
+              <TouchableOpacity
+                style={globalStyles.inputField}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={{ color: filtroFecha ? COLORS.textPrimary : COLORS.placeholder }}>
+                  {filtroFecha || 'Seleccionar fecha'}
+                </Text>
+              </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateObj}
+                  mode="date"
+                  display="default"
+                  onChange={onChangeDate}
+                />
+              )}
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.btnRoutes} onPress={verRutasDisponibles} activeOpacity={0.8}>
             <Ionicons name="navigate-outline" size={20} color={COLORS.textLight} />
             <Text style={styles.btnText}>Ver rutas disponibles</Text>
           </TouchableOpacity>
+
+          {loadingViajes && <ActivityIndicator size="small" color={COLORS.primary} style={{ marginVertical: SPACING.md }} />}
+          {errorViajes && <Text style={{ color: COLORS.danger, textAlign: 'center' }}>Error al cargar viajes: {errorViajes.message}</Text>}
+
+          {viajesData.length > 0 && (
+            <View style={styles.tripsContainer}>
+              <Text style={styles.tripsHeader}>Viajes Encontrados</Text>
+            </View>
+          )}
 
           <TouchableOpacity style={styles.btnNewSearch} onPress={reiniciar} activeOpacity={0.8}>
             <Ionicons name="camera-outline" size={18} color={COLORS.secondary} />
@@ -278,260 +423,55 @@ export default function BuscarImagenScreen() {
           </TouchableOpacity>
         </View>
       )}
-    </ScrollView>
+    </View>
+  );
+
+  const renderItem = ({ item: viaje }: { item: any }) => (
+    <View style={styles.tripCardOuter}>
+      <View style={styles.tripCard}>
+        <View style={styles.tripRow}>
+          <Ionicons name="bus-outline" size={20} color={COLORS.secondary} />
+          <Text style={styles.tripCity}>{viaje.ciudadOrigen} a {viaje.ciudadDestino}</Text>
+        </View>
+        <View style={styles.tripDetails}>
+          <Text style={styles.tripText}>Fecha: {new Date(viaje.fechaHoraSalida).toLocaleString()}</Text>
+          <Text style={styles.tripText}>Servicio: {viaje.tipoBus}</Text>
+          <Text style={styles.tripPrice}>Bs. {viaje.precioBase.toFixed(2)}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (!loadingViajes) return <View style={{ height: SPACING.xxl }} />;
+    return (
+      <View style={{ padding: SPACING.lg, alignItems: 'center' }}>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+        <Text style={{ color: COLORS.textSecondary, marginTop: SPACING.xs }}>Cargando más viajes...</Text>
+      </View>
+    );
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <FlatList
+        style={globalStyles.safeAreaContainer}
+        ListHeaderComponent={renderHeader}
+        data={viajesData}
+        keyExtractor={(item) => item.idViaje.toString()}
+        renderItem={renderItem}
+        ListFooterComponent={renderFooter}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        showsVerticalScrollIndicator={false}
+      />
+      <SelectModal
+        visible={showOriginModal}
+        title="Seleccionar Origen"
+        options={origenesBolivia}
+        onSelect={onSelectOrigen}
+        onClose={() => setShowOriginModal(false)}
+      />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingBottom: SPACING.xxl * 2,
-  },
-
-  /* ── Encabezado ── */
-  headerSection: {
-    alignItems: 'center',
-    paddingTop: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.md,
-  },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-    shadowColor: COLORS.secondary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  title: {
-    ...TYPOGRAPHY.h1,
-    textAlign: 'center',
-    marginBottom: SPACING.xs,
-  },
-  description: {
-    ...TYPOGRAPHY.body,
-    textAlign: 'center',
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-    paddingHorizontal: SPACING.md,
-  },
-
-  /* ── Imagen ── */
-  imageContainer: {
-    width: SCREEN_WIDTH - (SPACING.md * 2),
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.md,
-    borderRadius: 16,
-    //overflow: 'hidden',
-    backgroundColor: '#e2e8f0', // Fondo gris claro temporal para ver si el contenedor se dibuja
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  previewImage: {
-    width: SCREEN_WIDTH - (SPACING.md * 2),
-    height: 240,
-    borderRadius: 16,
-  },
-  analyzingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 16,
-  },
-  analyzingText: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.textLight,
-    marginTop: SPACING.md,
-  },
-  progressBarContainer: {
-    width: '60%',
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 2,
-    marginTop: SPACING.md,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    width: '70%',
-    height: '100%',
-    backgroundColor: COLORS.accent,
-    borderRadius: 2,
-  },
-
-  /* ── Placeholder ── */
-  placeholderContainer: {
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.md,
-    height: 200,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-  },
-  placeholderText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.placeholder,
-    marginTop: SPACING.sm,
-    textAlign: 'center',
-    paddingHorizontal: SPACING.xl,
-  },
-
-  /* ── Botones ── */
-  actionsContainer: {
-    paddingHorizontal: SPACING.md,
-    marginTop: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  btnGallery: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.secondary,
-    paddingVertical: SPACING.md,
-    borderRadius: 14,
-    gap: SPACING.sm,
-    elevation: 3,
-    shadowColor: COLORS.secondary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-  },
-  btnCamera: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    paddingVertical: SPACING.md,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: COLORS.secondary,
-    gap: SPACING.sm,
-  },
-  btnCameraText: {
-    ...TYPOGRAPHY.buttonText,
-    color: COLORS.secondary,
-  },
-  btnAnalyze: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.accent,
-    paddingVertical: SPACING.md,
-    borderRadius: 14,
-    gap: SPACING.sm,
-    elevation: 3,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-  },
-  btnRetry: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING.sm,
-    gap: SPACING.xs,
-  },
-  btnRetryText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-  },
-  btnText: {
-    ...TYPOGRAPHY.buttonText,
-    color: COLORS.textLight,
-  },
-
-  /* ── Resultado ── */
-  resultCard: {
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.lg,
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: SPACING.lg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-  },
-  resultHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    marginBottom: SPACING.md,
-    paddingBottom: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  resultTitle: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.success,
-  },
-  resultBody: {
-    marginBottom: SPACING.md,
-  },
-  destinoNombre: {
-    ...TYPOGRAPHY.h2,
-    color: COLORS.primary,
-    marginBottom: SPACING.sm,
-  },
-  resultRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-    marginBottom: 4,
-  },
-  resultDetail: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-  },
-  confidenceBarBackground: {
-    width: '100%',
-    height: 6,
-    backgroundColor: COLORS.border,
-    borderRadius: 3,
-    marginTop: SPACING.sm,
-    overflow: 'hidden',
-  },
-  confidenceBarFill: {
-    height: '100%',
-    backgroundColor: COLORS.success,
-    borderRadius: 3,
-  },
-  btnRoutes: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-    paddingVertical: SPACING.md,
-    borderRadius: 14,
-    gap: SPACING.sm,
-    marginBottom: SPACING.sm,
-  },
-  btnNewSearch: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING.sm,
-    gap: SPACING.xs,
-  },
-  btnNewSearchText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.secondary,
-    fontWeight: '600',
-  },
-});

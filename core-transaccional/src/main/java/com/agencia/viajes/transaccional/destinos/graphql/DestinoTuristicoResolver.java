@@ -14,7 +14,16 @@ public class DestinoTuristicoResolver {
     private final DestinoTuristicoService destinoTuristicoService;
 
     @QueryMapping
-    public DestinoViajesResponse buscarViajesPorDestinoTuristico(@Argument String nombreDestino) {
-        return destinoTuristicoService.buscarViajesHaciaDestinoTuristico(nombreDestino);
+    public DestinoViajesResponse buscarViajesPorDestinoTuristico(
+            @Argument String nombreDestino,
+            @Argument Integer page,
+            @Argument Integer size,
+            @Argument String fecha,
+            @Argument String origen) {
+        
+        int pageNum = (page != null) ? page : 0;
+        int sizeNum = (size != null) ? size : 10;
+        
+        return destinoTuristicoService.buscarViajesHaciaDestinoTuristico(nombreDestino, pageNum, sizeNum, fecha, origen);
     }
 }

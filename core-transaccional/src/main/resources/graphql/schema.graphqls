@@ -26,7 +26,13 @@ type Query {
 
     listarFlotas: [Flota!]!
 
-    buscarViajesPorDestinoTuristico(nombreDestino: String!): DestinoViajesResponse!
+    buscarViajesPorDestinoTuristico(
+        nombreDestino: String!
+        page: Int = 0
+        size: Int = 10
+        fecha: String
+        origen: String
+    ): DestinoViajesResponse!
 }
 
 type Mutation {

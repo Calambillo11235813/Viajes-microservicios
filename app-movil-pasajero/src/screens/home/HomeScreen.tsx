@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,6 +7,7 @@ import { SearchStackParamList } from '@/navigation/SearchStackNavigator';
 import { GET_RUTAS } from '@/graphql/queries/viajes';
 import { COLORS, SPACING, TYPOGRAPHY, globalStyles } from '@/theme/theme';
 import SelectModal from '@/components/SelectModal';
+import { styles } from './styles/HomeScreen.styles';
 
 type Props = NativeStackScreenProps<SearchStackParamList, 'Home'>;
 
@@ -177,55 +178,3 @@ export default function HomeScreen({ navigation }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.xxl + 70,
-    paddingBottom: SPACING.xl,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  greeting: {
-    ...TYPOGRAPHY.h1,
-    color: COLORS.textLight,
-  },
-  subtitle: {
-    ...TYPOGRAPHY.bodyLarge,
-    color: COLORS.textLight,
-    opacity: 0.8,
-    marginTop: SPACING.xs,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    ...TYPOGRAPHY.body,
-    marginTop: SPACING.sm,
-    color: COLORS.textSecondary,
-  },
-  errorContainer: {
-    padding: SPACING.md,
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.danger,
-    marginTop: SPACING.md,
-  },
-  errorText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.danger,
-  },
-  cardTitle: {
-    ...TYPOGRAPHY.h2,
-    marginBottom: SPACING.md,
-    color: COLORS.textPrimary,
-  },
-  inputDisabled: {
-    backgroundColor: COLORS.background,
-    opacity: 0.6,
-  }
-});

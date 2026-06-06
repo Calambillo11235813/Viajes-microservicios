@@ -9,9 +9,14 @@ import com.agencia.viajes.transaccional.rutas.model.RutaDestino;
 import com.agencia.viajes.transaccional.viajes.dto.ViajeDisponibleResponse;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
 import com.agencia.viajes.transaccional.viajes.repository.ViajeProgramadoRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +28,7 @@ public class DestinoTuristicoService {
     private final ViajeProgramadoRepository viajeProgramadoRepository;
 
     @Transactional(readOnly = true)
-    public DestinoViajesResponse buscarViajesHaciaDestinoTuristico(String nombreDestino) {
+    public DestinoViajesResponse buscarViajesHaciaDestinoTuristico(String nombreDestino, int page, int size, String fechaStr, String origen) {
         if (nombreDestino == null || nombreDestino.isBlank()) {
             throw new IllegalArgumentException("El nombre del destino turístico es obligatorio.");
         }
@@ -31,11 +36,39 @@ public class DestinoTuristicoService {
         DestinoTuristico destino = destinoTuristicoRepository.findByNombreTuristicoIgnoreCase(nombreDestino.trim())
                 .orElseThrow(() -> new IllegalArgumentException("Destino turístico no encontrado en el catálogo: " + nombreDestino));
 
-        List<ViajeProgramado> viajes = viajeProgramadoRepository.buscarDisponiblesHaciaDestinoFuturos(
-                destino.getDepartamento(),
-                LocalDateTime.now());
+        LocalDateTime inicioDia;
+        LocalDateTime finDia;
 
-        List<ViajeDisponibleResponse> viajesDto = viajes.stream()
+        if (fechaStr != null && !fechaStr.isBlank()) {
+            try {
+                LocalDate fecha = LocalDate.parse(fechaStr.trim());
+                inicioDia = fecha.atStartOfDay();
+                finDia = fecha.plusDays(1).atStartOfDay();
+                
+                // Si la fecha seleccionada es hoy, ajustar inicioDia a la hora actual
+                if (fecha.equals(LocalDate.now())) {
+                    inicioDia = LocalDateTime.now();
+                }
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("Formato de fecha inválido. Se espera YYYY-MM-DD.");
+            }
+        } else {
+            inicioDia = LocalDateTime.now();
+            finDia = LocalDateTime.now().plusYears(10);
+        }
+
+        String origenFiltro = origen == null || origen.isBlank() ? "" : origen.trim();
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<ViajeProgramado> viajesPage = viajeProgramadoRepository.buscarDisponiblesHaciaDestinoPaginado(
+                destino.getDepartamento(),
+                origenFiltro,
+                inicioDia,
+                finDia,
+                pageable);
+
+        List<ViajeDisponibleResponse> viajesDto = viajesPage.getContent().stream()
                 .map(this::mapearRespuestaViaje)
                 .toList();
 

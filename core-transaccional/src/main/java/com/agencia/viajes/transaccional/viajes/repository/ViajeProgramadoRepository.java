@@ -96,4 +96,33 @@ public interface ViajeProgramadoRepository extends JpaRepository<ViajeProgramado
     List<ViajeProgramado> buscarDisponiblesHaciaDestinoFuturos(
             @Param("destino") String destino,
             @Param("momentoActual") LocalDateTime momentoActual);
+
+    /**
+     * Busca viajes programados futuros hacia un destino específico con paginación y filtros opcionales.
+     *
+     * @param destino ciudad de destino solicitada.
+     * @param origen filtro opcional por ciudad de origen (cadena vacía para ignorar).
+     * @param inicioDia filtro por fecha de inicio.
+     * @param finDia filtro por fecha de fin.
+     * @param pageable paginación.
+     * @return página de viajes programados futuros.
+     */
+    @Query("""
+            SELECT viaje
+            FROM ViajeProgramado viaje
+            JOIN FETCH viaje.rutaDestino ruta
+            JOIN FETCH viaje.flota flota
+            WHERE LOWER(ruta.ciudadDestino) = LOWER(:destino)
+              AND viaje.estadoViaje = 'PROGRAMADO'
+              AND (:origen = '' OR LOWER(ruta.ciudadOrigen) = LOWER(:origen))
+              AND viaje.fechaHoraSalida >= :inicioDia
+              AND viaje.fechaHoraSalida < :finDia
+            ORDER BY viaje.fechaHoraSalida ASC
+            """)
+    org.springframework.data.domain.Page<ViajeProgramado> buscarDisponiblesHaciaDestinoPaginado(
+            @Param("destino") String destino,
+            @Param("origen") String origen,
+            @Param("inicioDia") LocalDateTime inicioDia,
+            @Param("finDia") LocalDateTime finDia,
+            org.springframework.data.domain.Pageable pageable);
 }

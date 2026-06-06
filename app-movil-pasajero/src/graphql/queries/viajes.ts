@@ -34,3 +34,30 @@ export const BUSCAR_VIAJES = gql`
     }
   }
 `;
+
+export const BUSCAR_VIAJES_DESTINO_TURISTICO = gql`
+  query BuscarViajesPorDestinoTuristico($nombreDestino: String!, $page: Int, $size: Int, $fecha: String, $origen: String) {
+    buscarViajesPorDestinoTuristico(nombreDestino: $nombreDestino, page: $page, size: $size, fecha: $fecha, origen: $origen) {
+      destino {
+        id
+        nombreTuristico
+        departamento
+        descripcion
+      }
+      viajesDisponibles {
+        idViaje
+        idRuta
+        ciudadOrigen
+        ciudadDestino
+        fechaHoraSalida
+        fechaHoraLlegada
+        duracionEstimadaHoras
+        precioBase
+        idBus
+        tipoBus
+        capacidadTotalAsientos
+        estadoViaje
+      }
+    }
+  }
+`;
