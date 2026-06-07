@@ -128,21 +128,6 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 6,
   },
-  btnCamera: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    paddingVertical: SPACING.md,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: COLORS.secondary,
-    gap: SPACING.sm,
-  },
-  btnCameraText: {
-    ...TYPOGRAPHY.buttonText,
-    color: COLORS.secondary,
-  },
   btnAnalyze: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -265,42 +250,9 @@ export const styles = StyleSheet.create({
     color: COLORS.primary,
     marginBottom: SPACING.sm,
   },
-  tripCardOuter: {
-    paddingHorizontal: SPACING.lg,
-  },
-  tripCard: {
-    backgroundColor: COLORS.background,
-    padding: SPACING.md,
-    borderRadius: 12,
-    marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  tripRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    marginBottom: SPACING.xs,
-  },
-  tripCity: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.primary,
-    fontSize: 16,
-  },
-  tripDetails: {
-    marginTop: 4,
-  },
-  tripText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  tripPrice: {
-    ...TYPOGRAPHY.h2,
-    color: COLORS.success,
-    fontSize: 18,
-    marginTop: 4,
-    textAlign: 'right',
+  listContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.xxl,
   },
   filtersContainer: {
     marginTop: SPACING.md,

@@ -1,6 +1,7 @@
 package com.agencia.viajes.transaccional.destinos.graphql;
 
 import com.agencia.viajes.transaccional.destinos.dto.DestinoViajesResponse;
+import com.agencia.viajes.transaccional.destinos.dto.OrigenesDestinoTuristicoResponse;
 import com.agencia.viajes.transaccional.destinos.service.DestinoTuristicoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -12,6 +13,12 @@ import org.springframework.stereotype.Controller;
 public class DestinoTuristicoResolver {
 
     private final DestinoTuristicoService destinoTuristicoService;
+
+    @QueryMapping
+    public OrigenesDestinoTuristicoResponse listarOrigenesHaciaDestinoTuristico(
+            @Argument String nombreDestino) {
+        return destinoTuristicoService.listarOrigenesHaciaDestinoTuristico(nombreDestino);
+    }
 
     @QueryMapping
     public DestinoViajesResponse buscarViajesPorDestinoTuristico(

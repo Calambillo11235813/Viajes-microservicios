@@ -35,6 +35,15 @@ export const BUSCAR_VIAJES = gql`
   }
 `;
 
+export const LISTAR_ORIGENES_DESTINO_TURISTICO = gql`
+  query ListarOrigenesHaciaDestinoTuristico($nombreDestino: String!) {
+    listarOrigenesHaciaDestinoTuristico(nombreDestino: $nombreDestino) {
+      departamento
+      origenes
+    }
+  }
+`;
+
 export const BUSCAR_VIAJES_DESTINO_TURISTICO = gql`
   query BuscarViajesPorDestinoTuristico($nombreDestino: String!, $page: Int, $size: Int, $fecha: String, $origen: String) {
     buscarViajesPorDestinoTuristico(nombreDestino: $nombreDestino, page: $page, size: $size, fecha: $fecha, origen: $origen) {

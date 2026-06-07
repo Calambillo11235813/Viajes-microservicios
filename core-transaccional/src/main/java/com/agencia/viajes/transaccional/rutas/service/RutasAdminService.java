@@ -7,6 +7,7 @@ import com.agencia.viajes.transaccional.rutas.repository.RutaDestinoRepository;
 import com.agencia.viajes.transaccional.viajes.dto.ViajeDisponibleResponse;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
 import com.agencia.viajes.transaccional.viajes.repository.ViajeProgramadoRepository;
+import com.agencia.viajes.transaccional.viajes.service.TarifaViajeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class RutasAdminService {
     private final RutaDestinoRepository rutaDestinoRepository;
     private final ViajeProgramadoRepository viajeProgramadoRepository;
     private final FlotaRepository flotaRepository;
+    private final TarifaViajeService tarifaViajeService;
 
     // --- Gestión de Rutas ---
 
@@ -149,6 +151,10 @@ public class RutasAdminService {
     }
 
     private ViajeDisponibleResponse mapearRespuesta(ViajeProgramado viaje) {
+        BigDecimal precioCalculado = tarifaViajeService.calcularPrecioPorServicio(
+                viaje.getRutaDestino().getPrecioBase(),
+                viaje.getFlota().getTipoBus());
+
         return new ViajeDisponibleResponse(
                 viaje.getId(),
                 viaje.getRutaDestino().getId(),
@@ -157,7 +163,7 @@ public class RutasAdminService {
                 viaje.getFechaHoraSalida().toString(),
                 viaje.getFechaHoraLlegada().toString(),
                 viaje.getRutaDestino().getDuracionEstimadaHoras(),
-                viaje.getRutaDestino().getPrecioBase(),
+                precioCalculado,
                 viaje.getRutaDestino().getCategoriaTuristica(),
                 viaje.getFlota().getIdBus(),
                 viaje.getFlota().getTipoBus(),

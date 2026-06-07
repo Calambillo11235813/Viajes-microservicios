@@ -8,6 +8,7 @@ import com.agencia.viajes.transaccional.reservas.model.BoletoAsiento;
 import com.agencia.viajes.transaccional.reservas.model.Reserva;
 import com.agencia.viajes.transaccional.reservas.repository.BoletoAsientoRepository;
 import com.agencia.viajes.transaccional.reservas.repository.ReservaRepository;
+import com.agencia.viajes.transaccional.viajes.service.TarifaViajeService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -35,6 +36,7 @@ public class PagoService {
     private final BoletoAsientoRepository boletoAsientoRepository;
     private final PagoRepository pagoRepository;
     private final PagoConfirmadoEventPublisher pagoConfirmadoEventPublisher;
+    private final TarifaViajeService tarifaViajeService;
 
     /**
      * Registra un pago acreditado y confirma la reserva.
@@ -61,10 +63,10 @@ public class PagoService {
         validarReservaPendiente(reserva);
         validarPagoDuplicado(idReserva);
 
-        BigDecimal montoEsperado = reserva.getViajeProgramado()
-                .getRutaDestino()
-                .getPrecioBase()
-                .multiply(BigDecimal.valueOf(reserva.getCantidadPasajeros()));
+        BigDecimal montoUnitario = tarifaViajeService.calcularPrecioPorServicio(
+                reserva.getViajeProgramado().getRutaDestino().getPrecioBase(),
+                reserva.getViajeProgramado().getFlota().getTipoBus());
+        BigDecimal montoEsperado = montoUnitario.multiply(BigDecimal.valueOf(reserva.getCantidadPasajeros()));
         validarMonto(montoTransaccion, montoEsperado);
 
         Pago pago = crearPagoConfirmado(reserva, metodoPagoUsado, montoTransaccion, cuponDescuentoAplicado);
@@ -138,10 +140,10 @@ public class PagoService {
 
     private void confirmarReservaYBoletos(Reserva reserva) {
         reserva.setEstadoReserva(ESTADO_RESERVA_CONFIRMADA);
-        reserva.setMontoTotalPagado(reserva.getViajeProgramado()
-                .getRutaDestino()
-                .getPrecioBase()
-                .multiply(BigDecimal.valueOf(reserva.getCantidadPasajeros())));
+        BigDecimal montoUnitario = tarifaViajeService.calcularPrecioPorServicio(
+                reserva.getViajeProgramado().getRutaDestino().getPrecioBase(),
+                reserva.getViajeProgramado().getFlota().getTipoBus());
+        reserva.setMontoTotalPagado(montoUnitario.multiply(BigDecimal.valueOf(reserva.getCantidadPasajeros())));
         reservaRepository.save(reserva);
 
         for (BoletoAsiento boleto : boletoAsientoRepository.findByReservaId(reserva.getId())) {

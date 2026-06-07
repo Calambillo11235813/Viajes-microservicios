@@ -10,6 +10,7 @@ import com.agencia.viajes.transaccional.usuarios.model.Usuario;
 import com.agencia.viajes.transaccional.usuarios.repository.UsuarioRepository;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
 import com.agencia.viajes.transaccional.viajes.repository.ViajeProgramadoRepository;
+import com.agencia.viajes.transaccional.viajes.service.TarifaViajeService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ public class ReservaAsientoService {
     private final UsuarioRepository usuarioRepository;
     private final ReservaRepository reservaRepository;
     private final BoletoAsientoRepository boletoAsientoRepository;
+    private final TarifaViajeService tarifaViajeService;
 
     /**
      * Devuelve el mapa simple de asientos de un viaje.
@@ -95,7 +97,11 @@ public class ReservaAsientoService {
         Reserva reserva = crearReservaPendiente(usuario, viaje, ahora);
         BoletoAsiento boleto = crearBoletoReservado(reserva, asientoNormalizado, nombrePasajero, tipoPasajero, ahora);
 
-        return mapearRespuesta(reserva, boleto, viaje.getRutaDestino().getPrecioBase());
+        BigDecimal montoEstimado = tarifaViajeService.calcularPrecioPorServicio(
+                viaje.getRutaDestino().getPrecioBase(),
+                viaje.getFlota().getTipoBus());
+
+        return mapearRespuesta(reserva, boleto, montoEstimado);
     }
 
     private void validarDatosReserva(Integer idUsuario, Integer idViaje, String numeroAsiento, String nombrePasajero) {

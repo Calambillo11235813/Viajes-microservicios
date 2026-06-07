@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,21 +8,39 @@ import {
   FlatList,
   Alert,
   Platform,
+  DeviceEventEmitter,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { COLORS, SPACING, globalStyles } from '@/theme/theme';
 import { CONFIG } from '@/utils/config';
+import { useQuery } from '@apollo/client/react';
 import { apolloClient } from '@/graphql/client';
-import { BUSCAR_VIAJES_DESTINO_TURISTICO } from '@/graphql/queries/viajes';
+import { BUSCAR_VIAJES_DESTINO_TURISTICO, LISTAR_ORIGENES_DESTINO_TURISTICO } from '@/graphql/queries/viajes';
 import SelectModal from '@/components/SelectModal';
+import TripCard from '@/components/TripCard';
 import { styles } from './styles/BuscarImagenScreen.styles';
 
 interface DestinoDetectado {
+  /** Nombre legible mostrado al usuario */
   nombre: string;
+  /** Identificador del catálogo (valor devuelto por la IA / BD) */
+  nombreCatalogo: string;
   departamento: string;
   confianza: number;
+}
+
+/** Nombres amigables para la respuesta de predicción de la IA */
+const NOMBRES_DESTINO_DISPLAY: Record<string, string> = {
+  Uyuni: 'Salar de Uyuni',
+  Cristo_ConCordia: 'Cristo de la ConCordia',
+};
+
+function formatearNombreDestino(codigoDestino: string): { nombre: string; nombreCatalogo: string } {
+  const nombreCatalogo = codigoDestino.trim();
+  const nombre = NOMBRES_DESTINO_DISPLAY[nombreCatalogo] ?? nombreCatalogo.replace(/_/g, ' ');
+  return { nombre, nombreCatalogo };
 }
 
 /** Estados posibles de la pantalla */
@@ -31,7 +49,7 @@ type EstadoPantalla = 'inicial' | 'imagen_seleccionada' | 'analizando' | 'result
 /**
  * Pantalla de búsqueda de destinos mediante imágenes (CU-06).
  *
- * Permite al usuario seleccionar o capturar una foto de un paisaje boliviano,
+ * Permite al usuario seleccionar una foto de un paisaje boliviano desde la galería,
  * simula un análisis de IA (mock con setTimeout) y muestra un destino detectado.
  *
  * Diseñada para funcionar sin dependencias nativas pesadas, utilizando
@@ -57,7 +75,31 @@ export default function BuscarImagenScreen() {
   const [showOriginModal, setShowOriginModal] = useState(false);
   const [dateObj, setDateObj] = useState(new Date());
 
-  const origenesBolivia = ['Todos', 'La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosi', 'Tarija', 'Chuquisaca', 'Beni', 'Pando'];
+  const { data: origenesData, loading: loadingOrigenes } = useQuery<any>(LISTAR_ORIGENES_DESTINO_TURISTICO, {
+    variables: { nombreDestino: destinoDetectado?.nombreCatalogo ?? '' },
+    skip: !destinoDetectado,
+    fetchPolicy: 'network-only',
+  });
+
+  const origenesOpciones = useMemo(() => {
+    const origenes = origenesData?.listarOrigenesHaciaDestinoTuristico?.origenes ?? [];
+    return ['Todos', ...origenes];
+  }, [origenesData]);
+
+  useEffect(() => {
+    const departamento = origenesData?.listarOrigenesHaciaDestinoTuristico?.departamento;
+    if (!departamento) return;
+    setDestinoDetectado((prev) => {
+      if (!prev || prev.departamento === departamento) return prev;
+      return { ...prev, departamento };
+    });
+  }, [origenesData]);
+
+  useEffect(() => {
+    if (filtroOrigen && !origenesOpciones.includes(filtroOrigen)) {
+      setFiltroOrigen('');
+    }
+  }, [origenesOpciones, filtroOrigen]);
 
   const onChangeDate = (event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -98,33 +140,6 @@ export default function BuscarImagenScreen() {
       const asset = resultado.assets[0];
       if (asset?.uri) {
         setImagenUri(asset.uri);
-        setEstado('imagen_seleccionada');
-        setDestinoDetectado(null);
-      }
-    }
-  };
-
-  /**
-   * Abre la cámara del dispositivo para tomar una foto.
-   * Solicita permisos automáticamente si no están concedidos.
-   */
-  const tomarFoto = async () => {
-    const permiso = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permiso.granted) {
-      Alert.alert('Permiso denegado', 'Necesitamos acceso a tu cámara para tomar la foto.');
-      return;
-    }
-
-    const resultado = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.8,
-    });
-
-    if (!resultado.canceled && resultado.assets && resultado.assets.length > 0) {
-      const uri = resultado.assets[0];
-      if (uri) {
-        setImagenUri(resultado.assets[0].uri);
         setEstado('imagen_seleccionada');
         setDestinoDetectado(null);
       }
@@ -181,13 +196,15 @@ export default function BuscarImagenScreen() {
         return;
       }
 
-      const nombreDestino = json.destino.replace(/_/g, ' '); // Ej: "Cristo_ConCordia" -> "Cristo ConCordia"
+      const { nombre, nombreCatalogo } = formatearNombreDestino(json.destino);
 
       setDestinoDetectado({
-        nombre: nombreDestino,
-        departamento: 'Bolivia', // TODO: Cruzar con BD GraphQL para sacar datos adicionales
+        nombre,
+        nombreCatalogo,
+        departamento: '',
         confianza: Math.round(json.confianza * 100), // Convertir 0.95 a 95%
       });
+      setFiltroOrigen('');
       setEstado('resultado');
 
     } catch (error: any) {
@@ -242,7 +259,7 @@ export default function BuscarImagenScreen() {
       const response = await apolloClient.query({
         query: BUSCAR_VIAJES_DESTINO_TURISTICO,
         variables: {
-          nombreDestino: destinoDetectado.nombre,
+          nombreDestino: destinoDetectado.nombreCatalogo,
           page: pageNum,
           size: 10,
           fecha: filtroFecha || null,
@@ -286,7 +303,7 @@ export default function BuscarImagenScreen() {
         </View>
         <Text style={styles.title}>Buscar por Imagen</Text>
         <Text style={styles.description}>
-          Sube o toma una foto de un paisaje boliviano y nuestra IA identificará el destino turístico.
+          Sube una foto de un paisaje boliviano y nuestra IA identificará el destino turístico.
         </Text>
       </View>
 
@@ -321,11 +338,6 @@ export default function BuscarImagenScreen() {
             <Ionicons name="images-outline" size={22} color={COLORS.textLight} />
             <Text style={styles.btnText}>Subir de Galería</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.btnCamera} onPress={tomarFoto} activeOpacity={0.8}>
-            <Ionicons name="camera-outline" size={22} color={COLORS.secondary} />
-            <Text style={styles.btnCameraText}>Tomar Foto</Text>
-          </TouchableOpacity>
         </View>
       )}
 
@@ -355,7 +367,9 @@ export default function BuscarImagenScreen() {
             <Text style={styles.destinoNombre}>{destinoDetectado.nombre}</Text>
             <View style={styles.resultRow}>
               <Ionicons name="location-outline" size={16} color={COLORS.textSecondary} />
-              <Text style={styles.resultDetail}>{destinoDetectado.departamento}, Bolivia</Text>
+              <Text style={styles.resultDetail}>
+                {destinoDetectado.departamento ? `${destinoDetectado.departamento}, Bolivia` : 'Bolivia'}
+              </Text>
             </View>
             <View style={styles.resultRow}>
               <Ionicons name="analytics-outline" size={16} color={COLORS.textSecondary} />
@@ -374,10 +388,13 @@ export default function BuscarImagenScreen() {
               <Text style={globalStyles.inputLabel}>Origen</Text>
               <TouchableOpacity
                 style={globalStyles.inputField}
-                onPress={() => setShowOriginModal(true)}
+                onPress={() => !loadingOrigenes && origenesOpciones.length > 1 && setShowOriginModal(true)}
+                activeOpacity={loadingOrigenes || origenesOpciones.length <= 1 ? 1 : 0.7}
               >
                 <Text style={{ color: filtroOrigen ? COLORS.textPrimary : COLORS.placeholder }}>
-                  {filtroOrigen || 'Seleccionar Origen (Todos)'}
+                  {loadingOrigenes
+                    ? 'Cargando orígenes...'
+                    : filtroOrigen || 'Seleccionar Origen (Todos)'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -426,20 +443,25 @@ export default function BuscarImagenScreen() {
     </View>
   );
 
+  const handleSeleccionarViaje = (viaje: any) => {
+    DeviceEventEmitter.emit('NAVIGATE_SEARCH_STACK', {
+      screen: 'SeatSelection',
+      params: { idViaje: String(viaje.idViaje) },
+    });
+  };
+
   const renderItem = ({ item: viaje }: { item: any }) => (
-    <View style={styles.tripCardOuter}>
-      <View style={styles.tripCard}>
-        <View style={styles.tripRow}>
-          <Ionicons name="bus-outline" size={20} color={COLORS.secondary} />
-          <Text style={styles.tripCity}>{viaje.ciudadOrigen} a {viaje.ciudadDestino}</Text>
-        </View>
-        <View style={styles.tripDetails}>
-          <Text style={styles.tripText}>Fecha: {new Date(viaje.fechaHoraSalida).toLocaleString()}</Text>
-          <Text style={styles.tripText}>Servicio: {viaje.tipoBus}</Text>
-          <Text style={styles.tripPrice}>Bs. {viaje.precioBase.toFixed(2)}</Text>
-        </View>
-      </View>
-    </View>
+    <TripCard
+      idViaje={String(viaje.idViaje)}
+      ciudadOrigen={viaje.ciudadOrigen}
+      ciudadDestino={viaje.ciudadDestino}
+      fechaHoraSalida={viaje.fechaHoraSalida}
+      fechaHoraLlegada={viaje.fechaHoraLlegada}
+      precioBase={viaje.precioBase}
+      tipoBus={viaje.tipoBus}
+      capacidadTotalAsientos={viaje.capacidadTotalAsientos}
+      onPress={() => handleSeleccionarViaje(viaje)}
+    />
   );
 
   const renderFooter = () => {
@@ -460,6 +482,7 @@ export default function BuscarImagenScreen() {
         data={viajesData}
         keyExtractor={(item) => item.idViaje.toString()}
         renderItem={renderItem}
+        contentContainerStyle={styles.listContainer}
         ListFooterComponent={renderFooter}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
@@ -468,7 +491,7 @@ export default function BuscarImagenScreen() {
       <SelectModal
         visible={showOriginModal}
         title="Seleccionar Origen"
-        options={origenesBolivia}
+        options={origenesOpciones}
         onSelect={onSelectOrigen}
         onClose={() => setShowOriginModal(false)}
       />

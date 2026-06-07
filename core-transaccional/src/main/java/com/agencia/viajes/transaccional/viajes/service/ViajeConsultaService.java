@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ViajeConsultaService {
 
     private final ViajeProgramadoRepository viajeProgramadoRepository;
+    private final TarifaViajeService tarifaViajeService;
 
     /**
      * Consulta viajes programados por origen, destino y fecha.
@@ -62,6 +63,7 @@ public class ViajeConsultaService {
     private ViajeDisponibleResponse mapearRespuesta(ViajeProgramado viaje) {
         RutaDestino ruta = viaje.getRutaDestino();
         Flota flota = viaje.getFlota();
+        var precioCalculado = tarifaViajeService.calcularPrecioPorServicio(ruta.getPrecioBase(), flota.getTipoBus());
 
         return new ViajeDisponibleResponse(
                 viaje.getId(),
@@ -71,7 +73,7 @@ public class ViajeConsultaService {
                 viaje.getFechaHoraSalida().toString(),
                 viaje.getFechaHoraLlegada().toString(),
                 ruta.getDuracionEstimadaHoras(),
-                ruta.getPrecioBase(),
+                precioCalculado,
                 ruta.getCategoriaTuristica(),
                 flota.getIdBus(),
                 flota.getTipoBus(),

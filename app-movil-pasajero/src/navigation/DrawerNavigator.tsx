@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, DeviceEventEmitter } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomDrawer from '@/components/CustomDrawer';
-import SearchStackNavigator from '@/navigation/SearchStackNavigator';
+import SearchStackNavigator, { SearchStackParamList } from '@/navigation/SearchStackNavigator';
 import MyTripsScreen from '@/screens/home/MyTripsScreen';
 import BuscarImagenScreen from '@/screens/home/BuscarImagenScreen';
 import TraducirVisualScreen from '@/screens/home/TraducirVisualScreen';
@@ -28,25 +28,43 @@ const NOTIF_BADGE_COUNT = 3;
  *
  * Cada sección se renderiza condicionalmente según el estado `activeSection`.
  */
+type SearchStackNavigation = {
+  screen: keyof SearchStackParamList;
+  params?: SearchStackParamList[keyof SearchStackParamList];
+};
+
 export default function DrawerNavigator() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('Buscar');
+  const [searchStackNav, setSearchStackNav] = useState<SearchStackNavigation | null>(null);
 
   const openDrawer = useCallback(() => setIsDrawerOpen(true), []);
   const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
 
   const handleNavigate = useCallback((section: string) => {
+    if (section === 'Buscar') {
+      setSearchStackNav(null);
+    }
     setActiveSection(section);
   }, []);
 
   useEffect(() => {
-    // Escuchar eventos globales de navegación para cuando pantallas anidadas
-    // (como PaymentScreen) necesiten cambiar la pestaña del drawer.
-    const sub = DeviceEventEmitter.addListener('NAVIGATE_DRAWER', (section: string) => {
+    const subDrawer = DeviceEventEmitter.addListener('NAVIGATE_DRAWER', (section: string) => {
       setActiveSection(section);
     });
 
-    return () => sub.remove();
+    const subSearch = DeviceEventEmitter.addListener(
+      'NAVIGATE_SEARCH_STACK',
+      (payload: SearchStackNavigation) => {
+        setSearchStackNav(payload);
+        setActiveSection('Buscar');
+      }
+    );
+
+    return () => {
+      subDrawer.remove();
+      subSearch.remove();
+    };
   }, []);
 
   /**
@@ -72,7 +90,17 @@ export default function DrawerNavigator() {
   const renderActiveScreen = () => {
     switch (activeSection) {
       case 'Buscar':
-        return <SearchStackNavigator />;
+        return (
+          <SearchStackNavigator
+            key={
+              searchStackNav
+                ? `${searchStackNav.screen}-${JSON.stringify(searchStackNav.params ?? {})}`
+                : 'default'
+            }
+            initialScreen={searchStackNav?.screen}
+            initialParams={searchStackNav?.params}
+          />
+        );
       case 'MisViajes':
         return <MyTripsScreen />;
       case 'BuscarImagen':
@@ -86,7 +114,7 @@ export default function DrawerNavigator() {
       case 'Perfil':
         return <ProfileScreen />;
       default:
-        return <SearchStackNavigator />;
+        return <SearchStackNavigator key="default" />;
     }
   };
 

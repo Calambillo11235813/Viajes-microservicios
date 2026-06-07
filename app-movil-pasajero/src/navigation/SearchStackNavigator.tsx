@@ -14,13 +14,40 @@ export type SearchStackParamList = {
 
 const Stack = createNativeStackNavigator<SearchStackParamList>();
 
-export default function SearchStackNavigator() {
+type SearchStackNavigatorProps = {
+  initialScreen?: keyof SearchStackParamList;
+  initialParams?: SearchStackParamList[keyof SearchStackParamList];
+};
+
+export default function SearchStackNavigator({
+  initialScreen = 'Home',
+  initialParams,
+}: SearchStackNavigatorProps) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName={initialScreen}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
-      <Stack.Screen name="SeatSelection" component={SeatSelectionScreen} />
-      <Stack.Screen name="Payment" component={PaymentScreen} />
+      <Stack.Screen
+        name="SeatSelection"
+        component={SeatSelectionScreen}
+        initialParams={
+          initialScreen === 'SeatSelection'
+            ? (initialParams as SearchStackParamList['SeatSelection'])
+            : undefined
+        }
+      />
+      <Stack.Screen
+        name="Payment"
+        component={PaymentScreen}
+        initialParams={
+          initialScreen === 'Payment'
+            ? (initialParams as SearchStackParamList['Payment'])
+            : undefined
+        }
+      />
     </Stack.Navigator>
   );
 }

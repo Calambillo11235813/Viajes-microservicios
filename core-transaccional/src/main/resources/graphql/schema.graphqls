@@ -33,6 +33,8 @@ type Query {
         fecha: String
         origen: String
     ): DestinoViajesResponse!
+
+    listarOrigenesHaciaDestinoTuristico(nombreDestino: String!): OrigenesDestinoTuristicoResponse!
 }
 
 type Mutation {
@@ -267,4 +269,9 @@ type DestinoTuristicoInfo {
 type DestinoViajesResponse {
     destino: DestinoTuristicoInfo!
     viajesDisponibles: [ViajeDisponible!]!
+}
+
+type OrigenesDestinoTuristicoResponse {
+    departamento: String!
+    origenes: [String!]!
 }
