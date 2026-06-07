@@ -30,7 +30,9 @@ public class ViajeQueryResolver {
     public List<ViajeDisponibleResponse> buscarRutasYHorariosDisponibles(
             @Argument String origen,
             @Argument String destino,
-            @Argument String fecha) {
-        return viajeConsultaService.buscarRutasYHorariosDisponibles(origen, destino, LocalDate.parse(fecha));
+            @Argument String fecha,
+            @Argument Integer idUsuario) {
+        return viajeConsultaService.buscarRutasYHorariosDisponibles(
+                origen, destino, LocalDate.parse(fecha), idUsuario);
     }
 }

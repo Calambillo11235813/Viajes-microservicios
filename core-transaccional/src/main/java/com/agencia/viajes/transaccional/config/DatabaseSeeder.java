@@ -19,11 +19,13 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.core.annotation.Order;
 
 @Component
+@Profile("!test")
 @Order(1)
 @RequiredArgsConstructor
 public class DatabaseSeeder implements CommandLineRunner {

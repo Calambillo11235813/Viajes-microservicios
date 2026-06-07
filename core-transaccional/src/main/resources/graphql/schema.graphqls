@@ -3,6 +3,7 @@ type Query {
         origen: String!
         destino: String!
         fecha: String!
+        idUsuario: Int
     ): [ViajeDisponible!]!
 
     obtenerMapaAsientos(idViaje: Int!): [AsientoEstado!]!
@@ -137,6 +138,14 @@ type Mutation {
     ): Flota!
 
     eliminarFlota(idBus: Int!): Boolean!
+
+    registrarVisualizacionRuta(
+        idUsuario: Int!
+        idRuta: Int
+        origen: String
+        destino: String
+        canal: String
+    ): Boolean!
 }
 
 type ViajeDisponible {

@@ -1,6 +1,7 @@
 package com.agencia.viajes.transaccional.viajes.service;
 
 import com.agencia.viajes.transaccional.flotas.model.Flota;
+import com.agencia.viajes.transaccional.navegacion.service.NavegacionService;
 import com.agencia.viajes.transaccional.rutas.model.RutaDestino;
 import com.agencia.viajes.transaccional.viajes.dto.ViajeDisponibleResponse;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
@@ -21,6 +22,7 @@ public class ViajeConsultaService {
 
     private final ViajeProgramadoRepository viajeProgramadoRepository;
     private final TarifaViajeService tarifaViajeService;
+    private final NavegacionService navegacionService;
 
     /**
      * Consulta viajes programados por origen, destino y fecha.
@@ -28,6 +30,7 @@ public class ViajeConsultaService {
      * @param origen ciudad de salida.
      * @param destino ciudad de llegada.
      * @param fecha fecha calendario de salida.
+     * @param idUsuario identificador del usuario para tracking en DynamoDB (opcional).
      * @return viajes disponibles ordenados por hora de salida.
      * @throws IllegalArgumentException cuando algún criterio obligatorio está vacío.
      */
@@ -35,17 +38,23 @@ public class ViajeConsultaService {
     public List<ViajeDisponibleResponse> buscarRutasYHorariosDisponibles(
             String origen,
             String destino,
-            LocalDate fecha) {
+            LocalDate fecha,
+            Integer idUsuario) {
         validarCriterios(origen, destino, fecha);
 
         LocalDateTime inicioDia = fecha.atStartOfDay();
         LocalDateTime finDia = fecha.plusDays(1).atStartOfDay();
 
-        return viajeProgramadoRepository
+        List<ViajeDisponibleResponse> resultados = viajeProgramadoRepository
                 .buscarDisponiblesPorRutaYFecha(origen.trim(), destino.trim(), inicioDia, finDia)
                 .stream()
                 .map(this::mapearRespuesta)
                 .toList();
+
+        navegacionService.registrarBusquedaRutaAsync(
+                idUsuario, origen.trim(), destino.trim(), fecha, resultados.size());
+
+        return resultados;
     }
 
     private void validarCriterios(String origen, String destino, LocalDate fecha) {

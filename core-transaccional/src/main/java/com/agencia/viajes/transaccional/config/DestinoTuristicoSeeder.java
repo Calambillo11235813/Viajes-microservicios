@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
  * <p>Diseñado para ser idempotente: verifica antes de insertar.</p>
  */
 @Component
+@Profile("!test")
 @Order(3)
 @RequiredArgsConstructor
 public class DestinoTuristicoSeeder implements CommandLineRunner {

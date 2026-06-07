@@ -6,6 +6,7 @@
 - **Estado General:** 🚧 En Desarrollo
 - **Framework Base:** Spring Boot configurado con dependencias base de JPA, validación, Web MVC y GraphQL.
 - **Base de Datos:** PostgreSQL con Flyway configurado, migración inicial `V1__init_schema_viajes.sql` y datos semilla en `V2__seed_data.sql`.
+- **DynamoDB:** Integración write-only de eventos de navegación en tabla `NavegacionViajes` (`us-east-2`).
 
 ---
 
@@ -13,8 +14,9 @@
 
 - [x] **CU-01: Buscar rutas y horarios disponibles**
   - *Resumen:* Implementado con entidades JPA `RutaDestino`, `Flota` y `ViajeProgramado`; repositorio `ViajeProgramadoRepository`; servicio `ViajeConsultaService`; DTO `ViajeDisponibleResponse`; resolver GraphQL `ViajeQueryResolver`; y schema `graphql/schema.graphqls`.
-  - *Consulta GraphQL:* `buscarRutasYHorariosDisponibles(origen, destino, fecha)`.
+  - *Consulta GraphQL:* `buscarRutasYHorariosDisponibles(origen, destino, fecha, idUsuario)`.
   - *Integración Móvil:* Completada el 2026-06-01.
+  - *Integración CU-13:* Registro asíncrono de búsquedas en DynamoDB cuando se envía `idUsuario` (ver CU-13).
 - [x] **CU-02: Seleccionar asientos y reservar**
   - *Resumen:* Implementado con entidades JPA `Usuario`, `Reserva` y `BoletoAsiento`; repositorios `UsuarioRepository`, `ReservaRepository` y `BoletoAsientoRepository`; bloqueo pesimista en `ViajeProgramadoRepository`; servicio `ReservaAsientoService`; resolver GraphQL `ReservaAsientoResolver`; y ampliación de `graphql/schema.graphqls`.
   - *Consulta GraphQL:* `obtenerMapaAsientos(idViaje)`.
@@ -43,6 +45,13 @@
   - *Integración Motor IA:* `POST http://localhost:8000/api/recomendar-ruta/api/v1/recomendar-ruta/`.
   - *Detalle técnico:* Ver `CU09_Recomendacion_Personalizada_2026-06-07.md`.
 
+- [x] **CU-13: Registrar navegación (visualización y búsqueda) – integración con DynamoDB**
+  - *Resumen:* Escritura write-only de eventos de navegación (`BUSQUEDA_RUTA`, `VISUALIZACION_RUTA`) en la tabla `NavegacionViajes` (`us-east-2`) mediante AWS SDK v2. Incluye mutación GraphQL explícita y hook automático desde CU-01. Fallos de DynamoDB se loguean sin interrumpir el flujo principal.
+  - *Mutación GraphQL:* `registrarVisualizacionRuta(idUsuario, idRuta, origen, destino, canal)`.
+  - *Integración CU-01:* `buscarRutasYHorariosDisponibles(..., idUsuario)` dispara tracking asíncrono.
+  - *Archivos:* `DynamoDbConfig`, paquete `navegacion/`, propiedades `aws.dynamodb.*`.
+  - *Detalle técnico:* Ver `CU13_Registrar_Navegacion_DynamoDB_2026-06-07.md`.
+
 ---
 
 ## ⚙️ Flujo Administrativo y Operativo
@@ -54,5 +63,5 @@
 - [x] **CU-11: Generar Reportes de Ventas**
   - *Resumen:* Implementado con DTOs `ReporteVentasResponse` y `VentasPorFechaResponse`; consulta nativa de agregación por fecha `findVentasAgrupadasPorFecha` en `PagoRepository`; servicio `ReportesVentasService` para validar y sumar totales; resolutor GraphQL `ReportesVentasResolver`; y esquema actualizado en `schema.graphqls`.
   - *Consulta GraphQL:* `generarReporteVentas(fechaInicio, fechaFin)`.
-- [ ] **CU-12: Gestionar Flota de Buses**
-  - *Notas:* Pendiente CRUD de vehículos y asignación de capacidades.
+- [x] **CU-12: Gestionar Flota de Buses**
+  - *Notas:* Implementado.
