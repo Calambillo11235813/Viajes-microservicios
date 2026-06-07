@@ -35,6 +35,8 @@ type Query {
     ): DestinoViajesResponse!
 
     listarOrigenesHaciaDestinoTuristico(nombreDestino: String!): OrigenesDestinoTuristicoResponse!
+
+    obtenerRecomendacionRuta(idUsuario: Int!, presupuesto: Float): RecomendacionRutaResponse!
 }
 
 type Mutation {
@@ -274,4 +276,17 @@ type DestinoViajesResponse {
 type OrigenesDestinoTuristicoResponse {
     departamento: String!
     origenes: [String!]!
+}
+
+type RecomendacionRutaResponse {
+    rutaRecomendadaId: Int
+    perfilUsuario: String
+    categoriaPreferida: String
+    topRutas: [TopRuta!]
+    advertencia: String
+}
+
+type TopRuta {
+    idRuta: Int
+    probabilidad: Float
 }

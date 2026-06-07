@@ -35,6 +35,14 @@
   - *Resumen:* Implementado con DTO `HistorialViajeResponse`; método optimizado `buscarHistorialPorUsuario` en `ReservaRepository`; servicio `HistorialViajesService`; resolutor GraphQL `HistorialViajesResolver`; y ampliación de `graphql/schema.graphqls`.
   - *Consulta GraphQL:* `consultarHistorialViajes(idUsuario)`.
 
+
+- [x] **CU-09: Recomendación personalizada de rutas**
+  - *Resumen:* Se implementó la orquestación entre PostgreSQL y el motor IA (Django) para sugerir rutas según el perfil del pasajero. El servicio calcula el perfil (`Económico`, `Estándar`, `Premium`) con percentiles globales de gasto, obtiene la categoría turística preferida del historial de reservas y llama al endpoint REST del modelo Random Forest. La respuesta incluye la ruta recomendada y el top 3 con probabilidades; si el motor IA falla, devuelve ruta por defecto con advertencia.
+  - *Archivos:* `RecomendacionService`, `RecomendacionResolver`, DTOs en `recomendaciones/dto/`, `MotorIaClientConfig`, consultas agregadas en `ReservaRepository`, tipos y query en `schema.graphqls`, propiedades `motor-ia.base-url` y `motor-ia.recomendacion-path` en `application.properties`.
+  - *Consulta GraphQL:* `obtenerRecomendacionRuta(idUsuario, presupuesto)`.
+  - *Integración Motor IA:* `POST http://localhost:8000/api/recomendar-ruta/api/v1/recomendar-ruta/`.
+  - *Detalle técnico:* Ver `CU09_Recomendacion_Personalizada_2026-06-07.md`.
+
 ---
 
 ## ⚙️ Flujo Administrativo y Operativo
