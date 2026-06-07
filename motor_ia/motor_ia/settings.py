@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'api_destinos.apps.ApiDestinosConfig',
     'api_reels.apps.ApiReelsConfig',
     'api_traductor.apps.ApiTraductorConfig',
+    'machinelearning.CU09_Recomendacion_personalizada.apps.Cu09RecomendacionPersonalizadaConfig',
 ]
 
 MIDDLEWARE = [
