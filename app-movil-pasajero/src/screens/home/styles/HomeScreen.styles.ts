@@ -51,4 +51,9 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     opacity: 0.6,
   },
+  listContent: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xl,
+  },
 });

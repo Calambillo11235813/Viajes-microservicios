@@ -49,10 +49,10 @@
 
 - [x] **CU-08: Gestionar Usuarios**
   - *Notas:* Implementado CRUD de usuarios, entidad `Rol`, servicio `UsuarioAdminService` y controlador GraphQL.
-- [x] **CU-09: Gestionar Rutas y Horarios**
+- [x] **CU-10: Gestionar Rutas y Horarios**
   - *Notas:* Implementada lógica de rutas, validación estricta de solapamiento de horarios de viajes en BD, y mutaciones administrativas.
-- [x] **CU-10: Generar Reportes de Ventas**
+- [x] **CU-11: Generar Reportes de Ventas**
   - *Resumen:* Implementado con DTOs `ReporteVentasResponse` y `VentasPorFechaResponse`; consulta nativa de agregación por fecha `findVentasAgrupadasPorFecha` en `PagoRepository`; servicio `ReportesVentasService` para validar y sumar totales; resolutor GraphQL `ReportesVentasResolver`; y esquema actualizado en `schema.graphqls`.
   - *Consulta GraphQL:* `generarReporteVentas(fechaInicio, fechaFin)`.
-- [ ] **CU-11: Gestionar Flota de Buses**
+- [ ] **CU-12: Gestionar Flota de Buses**
   - *Notas:* Pendiente CRUD de vehículos y asignación de capacidades.

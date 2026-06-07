@@ -24,10 +24,13 @@ export default function LoginScreen({ navigation }: any) {
   
   const [loginMutation, { loading }] = useMutation<any>(LOGIN_MUTATION, {
     onCompleted: (data) => {
-      console.log('Login exitoso:', data.login.usuario);
-      setUser(data.login.usuario); // Guarda el usuario en el contexto
-      // No necesitamos llamar a navigation.replace('Home') porque 
-      // AppNavigator escucha el cambio de `user` y cambia el RootStack a "Main"
+      const usuario = data.login.usuario;
+      console.log('Login exitoso:', usuario);
+      setUser({
+        ...usuario,
+        idUsuario: Number(usuario.idUsuario),
+        idRol: Number(usuario.idRol),
+      });
     },
     onError: (error) => {
       console.error('Error de login:', error);

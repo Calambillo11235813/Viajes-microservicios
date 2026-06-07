@@ -1,5 +1,40 @@
 import { gql } from '@apollo/client';
 
+/** Resumen de ruta comercial para catálogo y mapeo de recomendaciones. */
+export interface RutaResumen {
+  id: string;
+  ciudadOrigen: string;
+  ciudadDestino: string;
+}
+
+/** Ruta candidata devuelta por el motor IA con su probabilidad. */
+export interface TopRutaRecomendada {
+  idRuta: number;
+  probabilidad: number | null;
+}
+
+/** Respuesta de recomendación personalizada (CU-09). */
+export interface RecomendacionRuta {
+  rutaRecomendadaId: number | null;
+  perfilUsuario: string | null;
+  categoriaPreferida: string | null;
+  topRutas: TopRutaRecomendada[];
+  advertencia: string | null;
+}
+
+export interface GetRutasData {
+  listarRutas: RutaResumen[];
+}
+
+export interface ObtenerRecomendacionRutaVars {
+  idUsuario: number;
+  presupuesto?: number | null;
+}
+
+export interface ObtenerRecomendacionRutaData {
+  obtenerRecomendacionRuta: RecomendacionRuta;
+}
+
 /**
  * Consulta para obtener todas las rutas disponibles (Origen y Destino).
  */
@@ -31,6 +66,25 @@ export const BUSCAR_VIAJES = gql`
       tipoBus
       capacidadTotalAsientos
       estadoViaje
+    }
+  }
+`;
+
+/**
+ * Consulta para obtener la recomendación personalizada de ruta (CU-09).
+ * Si no se envía presupuesto, el core usa el gasto histórico del usuario.
+ */
+export const OBTENER_RECOMENDACION_RUTA = gql`
+  query ObtenerRecomendacionRuta($idUsuario: Int!, $presupuesto: Float) {
+    obtenerRecomendacionRuta(idUsuario: $idUsuario, presupuesto: $presupuesto) {
+      rutaRecomendadaId
+      perfilUsuario
+      categoriaPreferida
+      advertencia
+      topRutas {
+        idRuta
+        probabilidad
+      }
     }
   }
 `;

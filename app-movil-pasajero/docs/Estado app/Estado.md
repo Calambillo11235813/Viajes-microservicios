@@ -43,6 +43,10 @@
   - *Fecha de finalización:* 2026-06-03
   - *Resumen:* Pantalla `NotificacionesScreen` con centro de alertas tipificadas (éxito/alerta/info). Integra `expo-notifications` para notificaciones nativas del SO con `setNotificationHandler` global, canal Android de alta prioridad, permisos dinámicos y automatización reactiva mediante `useEffect` + `setInterval` controlado por un `Switch` nativo. Incluye campanita con badge rojo en el header principal (tanto flotante como inline) y acceso desde el `CustomDrawer`.
 
+- [x] **CU-09: Recomendación personalizada de rutas**
+  - *Fecha de finalización:* 2026-06-07
+  - *Resumen:* Tarjeta pasiva `RecommendationCard` integrada en `HomeScreen` mediante `FlatList`. Consume la query GraphQL `OBTENER_RECOMENDACION_RUTA` del core transaccional usando `useAuth` para obtener `idUsuario`, mapea `rutaRecomendadaId` contra `GET_RUTAS` para mostrar origen/destino, y navega a `SearchResults` con la ruta preseleccionada. Maneja estados `loading`, `error` y ausencia de recomendación sin interrumpir la búsqueda principal.
+
 ---
 
 ## 🛠️ Mejoras Arquitectónicas y UX/UI
