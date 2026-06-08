@@ -35,6 +35,34 @@ export interface ObtenerRecomendacionRutaData {
   obtenerRecomendacionRuta: RecomendacionRuta;
 }
 
+/** Viaje programado disponible devuelto por CU-01. */
+export interface ViajeDisponible {
+  idViaje: string;
+  idRuta: string;
+  ciudadOrigen: string;
+  ciudadDestino: string;
+  fechaHoraSalida: string;
+  fechaHoraLlegada: string;
+  duracionEstimadaHoras: number;
+  precioBase: number;
+  categoriaTuristica?: string | null;
+  idBus: string;
+  tipoBus: string;
+  capacidadTotalAsientos: number;
+  estadoViaje: string;
+}
+
+export interface BuscarViajesVars {
+  origen: string;
+  destino: string;
+  fecha: string;
+  idUsuario?: number;
+}
+
+export interface BuscarViajesData {
+  buscarRutasYHorariosDisponibles: ViajeDisponible[];
+}
+
 /**
  * Consulta para obtener todas las rutas disponibles (Origen y Destino).
  */
@@ -52,8 +80,13 @@ export const GET_RUTAS = gql`
  * Consulta para buscar viajes programados disponibles basándose en el origen, destino y fecha.
  */
 export const BUSCAR_VIAJES = gql`
-  query BuscarViajes($origen: String!, $destino: String!, $fecha: String!) {
-    buscarRutasYHorariosDisponibles(origen: $origen, destino: $destino, fecha: $fecha) {
+  query BuscarViajes($origen: String!, $destino: String!, $fecha: String!, $idUsuario: Int) {
+    buscarRutasYHorariosDisponibles(
+      origen: $origen
+      destino: $destino
+      fecha: $fecha
+      idUsuario: $idUsuario
+    ) {
       idViaje
       idRuta
       ciudadOrigen
@@ -62,6 +95,7 @@ export const BUSCAR_VIAJES = gql`
       fechaHoraLlegada
       duracionEstimadaHoras
       precioBase
+      categoriaTuristica
       idBus
       tipoBus
       capacidadTotalAsientos
@@ -116,6 +150,7 @@ export const BUSCAR_VIAJES_DESTINO_TURISTICO = gql`
         fechaHoraLlegada
         duracionEstimadaHoras
         precioBase
+        categoriaTuristica
         idBus
         tipoBus
         capacidadTotalAsientos

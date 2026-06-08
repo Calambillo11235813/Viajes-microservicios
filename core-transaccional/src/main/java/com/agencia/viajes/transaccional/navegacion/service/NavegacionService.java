@@ -1,5 +1,6 @@
 package com.agencia.viajes.transaccional.navegacion.service;
 
+import com.agencia.viajes.transaccional.navegacion.dto.VisualizacionRutaRequest;
 import com.agencia.viajes.transaccional.navegacion.model.NavegacionItem;
 import com.agencia.viajes.transaccional.navegacion.repository.NavegacionRepository;
 import java.time.Instant;
@@ -31,31 +32,34 @@ public class NavegacionService {
     /**
      * Registra la visualización de una ruta por parte de un usuario.
      *
-     * @param idUsuario identificador del usuario.
-     * @param idRuta identificador de la ruta visualizada (opcional).
-     * @param origen ciudad de origen (opcional).
-     * @param destino ciudad de destino (opcional).
-     * @param canal canal de origen del evento (opcional).
+     * @param request datos de la visualización.
      */
-    public void registrarVisualizacion(
-            Integer idUsuario,
-            Integer idRuta,
-            String origen,
-            String destino,
-            String canal) {
-        if (idUsuario == null) {
+    public void registrarVisualizacion(VisualizacionRutaRequest request) {
+        if (request == null || request.idUsuario() == null) {
             log.debug("Se omite registro de visualización: idUsuario es nulo.");
             return;
         }
 
         NavegacionItem item = new NavegacionItem();
-        item.setIdUsuario(idUsuario);
+        item.setIdUsuario(request.idUsuario());
         item.setTimestamp(generarTimestampUnico());
+        item.setIdInteraccion(UUID.randomUUID().toString());
         item.setTipoEvento(TIPO_VISUALIZACION_RUTA);
-        item.setIdRuta(idRuta);
-        item.setOrigen(origen);
-        item.setDestino(destino);
-        item.setCanal(canal != null && !canal.isBlank() ? canal.trim() : CANAL_DEFAULT);
+        item.setTipoAccion(TIPO_VISUALIZACION_RUTA);
+        item.setIdRuta(request.idRuta());
+        item.setIdRutaVista(request.idRutaVista() != null ? request.idRutaVista() : request.idRuta());
+        item.setOrigen(request.origen());
+        item.setDestino(request.destino());
+        item.setCiudadOrigenVista(
+                request.ciudadOrigenVista() != null ? request.ciudadOrigenVista() : request.origen());
+        item.setCiudadDestinoVista(
+                request.ciudadDestinoVista() != null ? request.ciudadDestinoVista() : request.destino());
+        item.setCategoriaVista(request.categoriaVista());
+        item.setTiempoPermanenciaSeg(request.tiempoPermanenciaSeg());
+        item.setDispositivo(request.dispositivo());
+        item.setCanal(request.canal() != null && !request.canal().isBlank()
+                ? request.canal().trim()
+                : CANAL_DEFAULT);
 
         persistirSilenciosamente(item);
     }
@@ -83,7 +87,9 @@ public class NavegacionService {
         NavegacionItem item = new NavegacionItem();
         item.setIdUsuario(idUsuario);
         item.setTimestamp(generarTimestampUnico());
+        item.setIdInteraccion(UUID.randomUUID().toString());
         item.setTipoEvento(TIPO_BUSQUEDA_RUTA);
+        item.setTipoAccion(TIPO_BUSQUEDA_RUTA);
         item.setOrigen(origen);
         item.setDestino(destino);
         item.setFechaBusqueda(fecha != null ? fecha.toString() : null);

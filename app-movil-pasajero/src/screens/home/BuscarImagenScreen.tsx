@@ -17,7 +17,12 @@ import { COLORS, SPACING, globalStyles } from '@/theme/theme';
 import { CONFIG } from '@/utils/config';
 import { useQuery } from '@apollo/client/react';
 import { apolloClient } from '@/graphql/client';
-import { BUSCAR_VIAJES_DESTINO_TURISTICO, LISTAR_ORIGENES_DESTINO_TURISTICO } from '@/graphql/queries/viajes';
+import {
+  BUSCAR_VIAJES_DESTINO_TURISTICO,
+  LISTAR_ORIGENES_DESTINO_TURISTICO,
+  ViajeDisponible,
+} from '@/graphql/queries/viajes';
+import { useNavegacionTracking } from '@/hooks/useNavegacionTracking';
 import SelectModal from '@/components/SelectModal';
 import TripCard from '@/components/TripCard';
 import { styles } from './styles/BuscarImagenScreen.styles';
@@ -56,11 +61,12 @@ type EstadoPantalla = 'inicial' | 'imagen_seleccionada' | 'analizando' | 'result
  * únicamente `expo-image-picker` (compatible con Expo Go).
  */
 export default function BuscarImagenScreen() {
+  const { registrarVisualizacionRuta } = useNavegacionTracking();
   const [estado, setEstado] = useState<EstadoPantalla>('inicial');
   const [imagenUri, setImagenUri] = useState<string | null>(null);
   const [destinoDetectado, setDestinoDetectado] = useState<DestinoDetectado | null>(null);
 
-  const [viajesData, setViajesData] = useState<any[]>([]);
+  const [viajesData, setViajesData] = useState<ViajeDisponible[]>([]);
   const [loadingViajes, setLoadingViajes] = useState<boolean>(false);
   const [errorViajes, setErrorViajes] = useState<Error | null>(null);
 
@@ -443,14 +449,26 @@ export default function BuscarImagenScreen() {
     </View>
   );
 
-  const handleSeleccionarViaje = (viaje: any) => {
+  const handleSeleccionarViaje = (viaje: ViajeDisponible) => {
+    void registrarVisualizacionRuta({
+      idRuta: Number(viaje.idRuta),
+      idRutaVista: Number(viaje.idRuta),
+      origen: viaje.ciudadOrigen,
+      destino: viaje.ciudadDestino,
+      ciudadOrigenVista: viaje.ciudadOrigen,
+      ciudadDestinoVista: viaje.ciudadDestino,
+      categoriaVista: viaje.categoriaTuristica,
+      tiempoPermanenciaSeg: 0,
+      dispositivo: Platform.OS,
+    });
+
     DeviceEventEmitter.emit('NAVIGATE_SEARCH_STACK', {
       screen: 'SeatSelection',
       params: { idViaje: String(viaje.idViaje) },
     });
   };
 
-  const renderItem = ({ item: viaje }: { item: any }) => (
+  const renderItem = ({ item: viaje }: { item: ViajeDisponible }) => (
     <TripCard
       idViaje={String(viaje.idViaje)}
       ciudadOrigen={viaje.ciudadOrigen}

@@ -145,6 +145,12 @@ type Mutation {
         origen: String
         destino: String
         canal: String
+        categoriaVista: String
+        ciudadOrigenVista: String
+        ciudadDestinoVista: String
+        idRutaVista: Int
+        tiempoPermanenciaSeg: Int
+        dispositivo: String
     ): Boolean!
 }
 

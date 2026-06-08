@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
 import { useQuery } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { BUSCAR_VIAJES } from '@/graphql/queries/viajes';
+import { BUSCAR_VIAJES, BuscarViajesData, BuscarViajesVars } from '@/graphql/queries/viajes';
+import { useNavegacionTracking } from '@/hooks/useNavegacionTracking';
 import { COLORS, TYPOGRAPHY, globalStyles } from '@/theme/theme';
 import TripCard from '@/components/TripCard';
 import { SearchStackParamList } from '@/navigation/SearchStackNavigator';
@@ -18,11 +19,15 @@ type Props = NativeStackScreenProps<SearchStackParamList, 'SearchResults'>;
  */
 export default function SearchResultsScreen({ route, navigation }: Props) {
   const { origen, destino, fecha } = route.params;
+  const { idUsuario, registrarVisualizacionRuta } = useNavegacionTracking();
 
-  const { loading, error, data, refetch } = useQuery<any>(BUSCAR_VIAJES, {
-    variables: { origen, destino, fecha },
-    fetchPolicy: 'network-only' // Asegurar datos frescos
-  });
+  const { loading, error, data, refetch } = useQuery<BuscarViajesData, BuscarViajesVars>(
+    BUSCAR_VIAJES,
+    {
+      variables: { origen, destino, fecha, idUsuario },
+      fetchPolicy: 'network-only',
+    }
+  );
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -94,6 +99,17 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
             tipoBus={item.tipoBus}
             capacidadTotalAsientos={item.capacidadTotalAsientos}
             onPress={() => {
+              void registrarVisualizacionRuta({
+                idRuta: Number(item.idRuta),
+                idRutaVista: Number(item.idRuta),
+                origen: item.ciudadOrigen,
+                destino: item.ciudadDestino,
+                ciudadOrigenVista: item.ciudadOrigen,
+                ciudadDestinoVista: item.ciudadDestino,
+                categoriaVista: item.categoriaTuristica,
+                tiempoPermanenciaSeg: 0,
+                dispositivo: Platform.OS,
+              });
               navigation.navigate('SeatSelection', { idViaje: item.idViaje });
             }}
           />
