@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'api_traductor.apps.ApiTraductorConfig',
     'machinelearning.CU09_Recomendacion_personalizada.apps.Cu09RecomendacionPersonalizadaConfig',
     'machinelearning.CU10_Deteccion_de_patrones.apps.Cu10DeteccionPatronesViajeConfig',
+    'machinelearning.CU11_Segementacion_clientes.apps.ApiSegmentacionConfig',
 ]
 
 

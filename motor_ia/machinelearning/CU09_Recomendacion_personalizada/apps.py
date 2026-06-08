@@ -19,6 +19,6 @@ class Cu09RecomendacionPersonalizadaConfig(AppConfig):
             cls.modelo_rf = joblib.load(os.path.join(ruta_modelos, 'modelo_recomendador_rutas.pkl'))
             cls.le_perfil = joblib.load(os.path.join(ruta_modelos, 'le_perfil.pkl'))
             cls.le_categoria = joblib.load(os.path.join(ruta_modelos, 'le_categoria.pkl'))
-            print("[Motor IA] Modelo Random Forest y encoders cargados correctamente desde model_files/")
+            print("[CU09] Modelo Random Forest y encoders cargados correctamente desde model_files/")
         except Exception as e:
-            print(f"[Motor IA] ERROR al cargar los modelos: {e}")
+            print(f"[CU09] ERROR al cargar los modelos: {e}")
