@@ -56,9 +56,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         Integer usuariosExistentes = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM USUARIO", Integer.class);
         if (usuariosExistentes != null && usuariosExistentes > 0) {
             // Asegurarnos de que los usuarios estáticos siempre tengan la contraseña y email correctos aunque la DB ya exista
-            jdbcTemplate.update("UPDATE USUARIO SET email = 'cliente@viajes.com', password_hash = ? WHERE id_usuario = 1", passwordEncoder.encode("cliente123"));
-            jdbcTemplate.update("UPDATE USUARIO SET email = 'admin@viajes.com', password_hash = ? WHERE id_usuario = 2", passwordEncoder.encode("admin123"));
-            jdbcTemplate.update("UPDATE USUARIO SET email = 'gerente@viajes.com', password_hash = ? WHERE id_usuario = 3", passwordEncoder.encode("gerente123"));
+            jdbcTemplate.update("UPDATE USUARIO SET email = 'cliente@viajes.com', password_hash = ?, id_rol = 2 WHERE id_usuario = 1", passwordEncoder.encode("cliente123"));
+            jdbcTemplate.update("UPDATE USUARIO SET email = 'admin@viajes.com', password_hash = ?, id_rol = 1 WHERE id_usuario = 2", passwordEncoder.encode("admin123"));
+            jdbcTemplate.update("UPDATE USUARIO SET email = 'gerente@viajes.com', password_hash = ?, id_rol = 3 WHERE id_usuario = 3", passwordEncoder.encode("gerente123"));
             return;
         }
 

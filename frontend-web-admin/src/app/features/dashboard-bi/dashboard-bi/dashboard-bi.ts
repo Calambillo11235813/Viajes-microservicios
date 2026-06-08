@@ -1,83 +1,129 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BehaviorSubject, Observable, EMPTY, forkJoin } from 'rxjs';
+import { catchError, switchMap, tap, shareReplay } from 'rxjs/operators';
 import { Router } from '@angular/router';
+
 import { AuthService } from '../../../core/services/auth';
 import { GraphqlService } from '../../../core/services/graphql.service';
-import { NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
+import { 
+  KpisGeneralesResponse, 
+  DistribucionClustersResponse, 
+  ReglaAsociacionEnriquecida,
+  EvolucionClustersResponse,
+  MapaRutasComplementariasResponse
+} from '../../../core/models/business.models';
+
+import { KpiCardsComponent } from '../components/kpi-cards.component';
+import { ClusterDistributionChartComponent } from '../components/cluster-distribution-chart.component';
+import { ClusterEvolutionChartComponent } from '../components/cluster-evolution-chart.component';
+import { AssociationRulesTableComponent } from '../components/association-rules-table.component';
+import { RouteHeatmapComponent } from '../components/route-heatmap.component';
 
 @Component({
   selector: 'app-dashboard-bi',
   standalone: true,
-  imports: [CommonModule, NgxChartsModule],
+  imports: [
+    CommonModule, 
+    KpiCardsComponent, 
+    ClusterDistributionChartComponent,
+    ClusterEvolutionChartComponent,
+    AssociationRulesTableComponent,
+    RouteHeatmapComponent
+  ],
   templateUrl: './dashboard-bi.html',
   styleUrls: ['./dashboard-bi.css']
 })
 export class DashboardBi implements OnInit {
   private authService = inject(AuthService);
-  private graphqlService = inject(GraphqlService);
+  private graphql = inject(GraphqlService);
   private router = inject(Router);
 
-  montoTotalMes = 0;
-  cantidadPagosMes = 0;
-  ocupacionFlota = 0;
-  isLoading = true;
-
-  // ngx-charts configuration
-  chartData: any[] = [];
-  view: [number, number] = [700, 400];
-  showXAxis = true;
-  showYAxis = true;
-  gradient = false;
-  showLegend = false;
-  showXAxisLabel = true;
-  xAxisLabel = 'Fecha';
-  showYAxisLabel = true;
-  yAxisLabel = 'Ingresos (Bs)';
+  // Observables para el template
+  kpis$!: Observable<KpisGeneralesResponse>;
+  distribucion$!: Observable<DistribucionClustersResponse>;
+  evolucion$!: Observable<EvolucionClustersResponse>;
+  mapa$!: Observable<MapaRutasComplementariasResponse>;
   
-  // Custom scheme
-  colorScheme: any = {
-    name: 'custom',
-    selectable: true,
-    group: ScaleType.Ordinal,
-    domain: ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
-  };
+  ordenReglasSubject = new BehaviorSubject<string>('lift');
+  reglas$!: Observable<ReglaAsociacionEnriquecida[]>;
+  
+  // State Signals
+  activeTab = signal<string>('general');
+  error = signal<string | null>(null);
+
+  // Filtros globales/locales por defecto
+  fechaInicioDefault = '';
+  fechaFinDefault = '';
 
   ngOnInit() {
-    this.cargarDatos();
+    this.initDefaultDates();
+    this.cargarDashboard();
   }
 
-  cargarDatos() {
-    // Rango: Todo el mes actual
-    const hoy = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const inicio = `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-01`;
-    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
-    const fin = `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-${pad(ultimoDia)}`;
+  setActiveTab(tab: string) {
+    this.activeTab.set(tab);
+  }
 
-    this.graphqlService.generarReporteVentas(inicio, fin).subscribe({
-      next: (reporte) => {
-        this.montoTotalMes = reporte.montoTotal;
-        this.cantidadPagosMes = reporte.cantidadPagos;
-        this.ocupacionFlota = reporte.ocupacionFlota;
-        
-        // Map data for ngx-charts
-        this.chartData = [
-          {
-            name: 'Ingresos Diarios',
-            series: reporte.detallesPorFecha.map(d => ({
-              name: new Date(d.fecha).toLocaleDateString(),
-              value: d.montoDia
-            }))
-          }
-        ];
-        
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading = false;
-      }
-    });
+  private initDefaultDates() {
+    const hoy = new Date();
+    const haceUnMes = new Date();
+    haceUnMes.setMonth(hoy.getMonth() - 1);
+    
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.fechaFinDefault = `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-${pad(hoy.getDate())}`;
+    this.fechaInicioDefault = `${haceUnMes.getFullYear()}-${pad(haceUnMes.getMonth() + 1)}-${pad(haceUnMes.getDate())}`;
+  }
+
+  cargarDashboard() {
+    this.error.set(null);
+
+    this.kpis$ = this.graphql.obtenerKpisGenerales().pipe(
+      shareReplay(1),
+      catchError(this.handleError.bind(this))
+    );
+
+    this.distribucion$ = this.graphql.obtenerDistribucionClusters().pipe(
+      shareReplay(1),
+      catchError(this.handleError.bind(this))
+    );
+
+    this.mapa$ = this.graphql.obtenerMapaRutasComplementarias().pipe(
+      shareReplay(1),
+      catchError(this.handleError.bind(this))
+    );
+    
+    this.evolucion$ = this.graphql.obtenerEvolucionClusters(this.fechaInicioDefault, this.fechaFinDefault, 'MENSUAL').pipe(
+      shareReplay(1),
+      catchError(this.handleError.bind(this))
+    );
+
+    this.reglas$ = this.ordenReglasSubject.pipe(
+      switchMap(orden => this.graphql.obtenerReglasAsociacion(20, orden).pipe(
+        catchError(this.handleError.bind(this))
+      )),
+      shareReplay(1)
+    );
+  }
+
+  cambiarOrdenReglas(orden: string) {
+    this.ordenReglasSubject.next(orden);
+  }
+
+  actualizarFiltrosEvolucion(filtros: {inicio: string, fin: string, intervalo: string}) {
+    this.evolucion$ = this.graphql.obtenerEvolucionClusters(filtros.inicio, filtros.fin, filtros.intervalo).pipe(
+      shareReplay(1),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  refrescarManual() {
+    this.cargarDashboard();
+  }
+
+  private handleError(err: any) {
+    this.error.set('Error al cargar datos del dashboard: ' + (err.message || 'Error desconocido'));
+    return EMPTY;
   }
 
   logout() {

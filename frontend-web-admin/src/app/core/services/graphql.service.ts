@@ -386,4 +386,98 @@ export class GraphqlService {
     `;
     return this.executeQuery<any>(query, { idRuta }).pipe(map(data => data.generarReelTuristico));
   }
+
+  // --- BI GERENCIAL ---
+  obtenerKpisGenerales(): Observable<import('../models/business.models').KpisGeneralesResponse> {
+    const query = `
+      query {
+        kpisGenerales {
+          fechaSnapshot
+          segmentacion {
+            totalUsuarios
+            totalSegmentados
+            clusters { clusterId etiqueta cantidad porcentaje ingresoPromedio }
+            conversionPorCluster { clusterId tasaConversion }
+          }
+          reglasAsociacion {
+            totalReglas reglasAltoLift supportPromedioTop20 indiceCrossSelling
+          }
+        }
+      }
+    `;
+    return this.executeQuery<any>(query).pipe(map(data => data.kpisGenerales));
+  }
+
+  obtenerReglasAsociacion(top = 20, ordenarPor = 'lift'): Observable<import('../models/business.models').ReglaAsociacionEnriquecida[]> {
+    const query = `
+      query GetReglas($top: Int, $ordenarPor: String) {
+        reglasAsociacion(top: $top, ordenarPor: $ordenarPor) {
+          antecedentes { idRuta descripcion }
+          consecuente { idRuta descripcion }
+          soporte confianza lift interpretacion
+        }
+      }
+    `;
+    return this.executeQuery<any>(query, { top, ordenarPor }).pipe(map(data => data.reglasAsociacion));
+  }
+
+  obtenerDistribucionClusters(): Observable<import('../models/business.models').DistribucionClustersResponse> {
+    const query = `
+      query {
+        distribucionClusters {
+          fechaUltimaSegmentacion nClusters
+          clusters {
+            clusterId etiqueta cantidadUsuarios porcentaje
+            centroide { totalGastado numReservas rutasDistintas promedioPasajeros }
+            metricas { ingresoTotal ingresoPromedio tasaConversion ticketPromedio }
+          }
+        }
+      }
+    `;
+    return this.executeQuery<any>(query).pipe(map(data => data.distribucionClusters));
+  }
+
+  obtenerEvolucionClusters(fechaInicio: string, fechaFin: string, intervalo: string = 'MENSUAL'): Observable<import('../models/business.models').EvolucionClustersResponse> {
+    const query = `
+      query GetEvolucion($inicio: String!, $fin: String!, $intervalo: String) {
+        evolucionClusters(fechaInicio: $inicio, fechaFin: $fin, intervalo: $intervalo) {
+          fechaInicio fechaFin intervalo
+          serie {
+            fecha
+            clusters { clusterId cantidad porcentaje }
+          }
+        }
+      }
+    `;
+    return this.executeQuery<any>(query, { inicio: fechaInicio, fin: fechaFin, intervalo }).pipe(map(data => data.evolucionClusters));
+  }
+
+  obtenerMapaRutasComplementarias(): Observable<import('../models/business.models').MapaRutasComplementariasResponse> {
+    const query = `
+      query {
+        mapaRutasComplementarias {
+          rutas { idRuta descripcion }
+          matriz { rutaOrigen rutaDestino lift confianza }
+        }
+      }
+    `;
+    return this.executeQuery<any>(query).pipe(map(data => data.mapaRutasComplementarias));
+  }
+
+  obtenerRutasPorCluster(clusterId: number): Observable<import('../models/business.models').RutasPorClusterResponse> {
+    const query = `
+      query GetRutasCluster($id: Int!) {
+        rutasPorCluster(clusterId: $id) {
+          clusterId etiqueta
+          rutasFrecuentes { idRuta descripcion frecuencia ingresoTotal }
+          reglasRelevantes {
+            antecedentes { idRuta descripcion }
+            consecuente { idRuta descripcion }
+            lift confianza
+          }
+        }
+      }
+    `;
+    return this.executeQuery<any>(query, { id: clusterId }).pipe(map(data => data.rutasPorCluster));
+  }
 }

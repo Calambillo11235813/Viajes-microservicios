@@ -52,12 +52,26 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 @Service
 @RequiredArgsConstructor
 public class GerencialService {
 
     private static final Logger log = LoggerFactory.getLogger(GerencialService.class);
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        if (dashboardKpiSnapshotRepository.count() == 0) {
+            log.info("[BI-INIT] Generando Snapshot Inicial para el Dashboard...");
+            ejecutarResegmentacionMasiva();
+        }
+        if (reglaAsociacionCacheRepository.count() == 0) {
+            log.info("[BI-INIT] Caché de reglas vacía. Refrescando reglas de asociación...");
+            refrescarReglasDeAsociacion();
+        }
+    }
 
     private final MotorIaGerencialClient motorIaClient;
     private final ClusterCalculadorService clusterCalculadorService;

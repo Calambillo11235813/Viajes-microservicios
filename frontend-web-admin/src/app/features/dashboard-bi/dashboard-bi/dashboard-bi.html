@@ -1,111 +1,108 @@
-<div class="min-h-screen bg-gray-100 flex flex-col">
-  <nav class="bg-indigo-800 p-4 shadow-md text-white flex justify-between items-center shrink-0">
+<div class="min-h-screen bg-gray-50 flex flex-col font-sans">
+  <!-- Header Navbar -->
+  <nav class="bg-blue-600 p-4 shadow-md text-white flex justify-between items-center shrink-0">
     <div>
-      <h1 class="text-xl font-bold tracking-wider">BI Gerencial</h1>
-      <p class="text-xs text-indigo-300">Inteligencia de Negocios en Tiempo Real</p>
+      <h1 class="text-xl font-bold tracking-wider">Dashboard Gerencial</h1>
+      <p class="text-xs text-blue-200">Inteligencia de Negocios y Cross-Selling</p>
     </div>
     <div class="flex items-center gap-4">
-      <div class="flex items-center">
-        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold mr-2 border border-indigo-400">G</div>
-        <span class="text-sm font-medium">Gerencia</span>
+      <button (click)="refrescarManual()" class="bg-blue-700 hover:bg-blue-800 p-2 rounded-full transition-colors shadow-sm" title="Refrescar Datos">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+      <div class="flex items-center border-l border-blue-400 pl-4 ml-2">
+        <div class="w-8 h-8 rounded-full bg-blue-800 flex items-center justify-center font-bold mr-2 shadow-inner">G</div>
+        <span class="text-sm font-medium hidden md:inline-block">Gerencia</span>
       </div>
-      <button (click)="logout()" class="bg-indigo-900 hover:bg-indigo-700 px-4 py-2 rounded text-sm transition-colors border border-indigo-700">Cerrar Sesión</button>
+      <button (click)="logout()" class="text-blue-100 hover:text-white hover:underline text-sm font-medium ml-2">Salir</button>
     </div>
   </nav>
   
+  <!-- Main Content -->
   <main class="flex-1 p-6 lg:p-8 overflow-y-auto">
-    <div *ngIf="isLoading" class="flex h-full items-center justify-center">
-      <p class="text-indigo-800 text-lg animate-pulse">Cargando métricas...</p>
+    
+    <!-- Error Alert -->
+    <div *ngIf="error()" class="max-w-7xl mx-auto mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-700">{{ error() }}</p>
+        </div>
+      </div>
     </div>
 
-    <div *ngIf="!isLoading" class="max-w-7xl mx-auto space-y-6">
+    <!-- Tabs Navigation -->
+    <div class="max-w-7xl mx-auto border-b border-gray-200 bg-white shadow-sm mb-6 rounded-t-lg">
+      <nav class="-mb-px flex space-x-4 sm:space-x-8 px-4 overflow-x-auto" aria-label="Tabs">
+        <button (click)="setActiveTab('general')" 
+                [class]="activeTab() === 'general' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+          📊 Resumen General
+        </button>
+        <button (click)="setActiveTab('evolucion')" 
+                [class]="activeTab() === 'evolucion' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+          📈 Evolución Temporal
+        </button>
+        <button (click)="setActiveTab('cross-selling')" 
+                [class]="activeTab() === 'cross-selling' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+          🔗 Oportunidades Cross-Selling
+        </button>
+        <button (click)="setActiveTab('heatmap')" 
+                [class]="activeTab() === 'heatmap' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+          🗺️ Rutas Complementarias
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="max-w-7xl mx-auto space-y-6 min-h-[400px]">
       
-      <!-- Top KPIs -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-          <span class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Ingresos del Mes</span>
-          <span class="text-3xl font-bold text-gray-900">{{ montoTotalMes | currency:'Bs ' }}</span>
-          <span class="text-xs text-green-600 mt-2 font-medium flex items-center">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-            +12.5% respecto al mes pasado
-          </span>
+      <!-- Resumen General -->
+      <ng-container *ngIf="activeTab() === 'general'">
+        <app-kpi-cards [kpis]="kpis$ | async"></app-kpi-cards>
+        <div class="mt-6 h-[400px]">
+          <app-cluster-distribution-chart 
+            [distribucion]="distribucion$ | async" 
+            class="h-full block">
+          </app-cluster-distribution-chart>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-          <span class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Transacciones Exitosas</span>
-          <span class="text-3xl font-bold text-gray-900">{{ cantidadPagosMes }}</span>
-          <span class="text-xs text-gray-500 mt-2">Pagos confirmados este mes</span>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-          <span class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Ocupación Promedio</span>
-          <span class="text-3xl font-bold text-indigo-600">{{ ocupacionFlota }}%</span>
-          <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-            <div class="bg-indigo-600 h-2 rounded-full" [style.width.%]="ocupacionFlota"></div>
-          </div>
-        </div>
-      </div>
+      </ng-container>
 
-      <!-- Main Chart -->
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Ingresos Diarios (Tendencia Mensual)</h2>
-        <div class="h-80 w-full relative">
-          <ngx-charts-line-chart
-            *ngIf="chartData.length > 0 && chartData[0].series.length > 0"
-            [scheme]="colorScheme"
-            [legend]="showLegend"
-            [showXAxisLabel]="showXAxisLabel"
-            [showYAxisLabel]="showYAxisLabel"
-            [xAxis]="showXAxis"
-            [yAxis]="showYAxis"
-            [xAxisLabel]="xAxisLabel"
-            [yAxisLabel]="yAxisLabel"
-            [timeline]="true"
-            [results]="chartData"
-            >
-          </ngx-charts-line-chart>
-          <div *ngIf="chartData.length === 0 || chartData[0].series.length === 0" class="flex items-center justify-center h-full text-gray-400">
-            No hay transacciones registradas para este periodo.
-          </div>
+      <!-- Evolución Temporal -->
+      <ng-container *ngIf="activeTab() === 'evolucion'">
+        <div class="h-[500px]">
+          <app-cluster-evolution-chart 
+            [evolucion]="evolucion$ | async"
+            (filtrosCambiados)="actualizarFiltrosEvolucion($event)"
+            class="h-full block">
+          </app-cluster-evolution-chart>
         </div>
-      </div>
+      </ng-container>
 
-      <!-- Secondary Metrics -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h2 class="text-lg font-bold text-gray-800 mb-4">Rutas más Rentables</h2>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700">Santa Cruz - La Paz</span>
-              <span class="text-sm font-bold text-gray-900">45%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-1.5"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 45%"></div></div>
-            
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700">Cochabamba - Santa Cruz</span>
-              <span class="text-sm font-bold text-gray-900">30%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-1.5"><div class="bg-blue-400 h-1.5 rounded-full" style="width: 30%"></div></div>
-            
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700">La Paz - Oruro</span>
-              <span class="text-sm font-bold text-gray-900">15%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-1.5"><div class="bg-blue-300 h-1.5 rounded-full" style="width: 15%"></div></div>
-          </div>
-        </div>
+      <!-- Oportunidades Cross-Selling -->
+      <ng-container *ngIf="activeTab() === 'cross-selling'">
+        <app-association-rules-table 
+          [reglas]="reglas$ | async"
+          [ordenActual]="ordenReglasSubject.value"
+          (ordenCambiado)="cambiarOrdenReglas($event)">
+        </app-association-rules-table>
+      </ng-container>
 
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h2 class="text-lg font-bold text-gray-800 mb-4">Demanda por Día de la Semana</h2>
-          <div class="flex items-end justify-between h-40 mt-6 px-2">
-            <div class="w-8 bg-indigo-200 rounded-t-sm h-12 relative group"><span class="absolute -bottom-6 text-xs text-gray-500 w-full text-center">Lun</span></div>
-            <div class="w-8 bg-indigo-300 rounded-t-sm h-20 relative group"><span class="absolute -bottom-6 text-xs text-gray-500 w-full text-center">Mar</span></div>
-            <div class="w-8 bg-indigo-300 rounded-t-sm h-16 relative group"><span class="absolute -bottom-6 text-xs text-gray-500 w-full text-center">Mié</span></div>
-            <div class="w-8 bg-indigo-400 rounded-t-sm h-24 relative group"><span class="absolute -bottom-6 text-xs text-gray-500 w-full text-center">Jue</span></div>
-            <div class="w-8 bg-indigo-500 rounded-t-sm h-32 relative group"><span class="absolute -bottom-6 text-xs text-gray-500 w-full text-center">Vie</span></div>
-            <div class="w-8 bg-indigo-600 rounded-t-sm h-full relative group"><span class="absolute -bottom-6 text-xs text-gray-500 w-full text-center">Sáb</span></div>
-            <div class="w-8 bg-indigo-500 rounded-t-sm h-28 relative group"><span class="absolute -bottom-6 text-xs text-gray-500 w-full text-center">Dom</span></div>
-          </div>
-        </div>
-      </div>
+      <!-- Mapa de Rutas Complementarias -->
+      <ng-container *ngIf="activeTab() === 'heatmap'">
+        <app-route-heatmap 
+          [mapa]="mapa$ | async">
+        </app-route-heatmap>
+      </ng-container>
+
     </div>
   </main>
 </div>
