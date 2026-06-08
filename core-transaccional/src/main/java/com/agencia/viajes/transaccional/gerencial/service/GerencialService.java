@@ -133,7 +133,11 @@ public class GerencialService {
 
     @Transactional(readOnly = true)
     public List<ReglaAsociacionEnriquecida> obtenerReglasAsociacion(int top, String ordenarPor) {
-        List<ReglaAsociacionCache> reglas = reglaAsociacionCacheRepository.findAllByOrderByLiftDesc();
+        List<ReglaAsociacionCache> reglas = switch (ordenarPor.toLowerCase()) {
+            case "confidence" -> reglaAsociacionCacheRepository.findAllByOrderByConfianzaDesc();
+            case "support" -> reglaAsociacionCacheRepository.findAllByOrderBySoporteDesc();
+            default -> reglaAsociacionCacheRepository.findAllByOrderByLiftDesc();
+        };
         if (reglas.size() > top) {
             reglas = reglas.subList(0, top);
         }

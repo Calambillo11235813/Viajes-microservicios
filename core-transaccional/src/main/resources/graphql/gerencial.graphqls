@@ -1,0 +1,160 @@
+extend type Query {
+    """
+    Obtiene los KPIs generales del dashboard gerencial, incluyendo resúmenes de segmentación y reglas.
+    Requiere rol: GERENTE
+    """
+    kpisGenerales: KpisGeneralesResponse!
+
+    """
+    Obtiene las reglas de asociación cacheadas para identificar cross-selling.
+    Parámetros de ordenamiento válidos: "lift", "confidence", "support".
+    Requiere rol: GERENTE
+    """
+    reglasAsociacion(top: Int = 20, ordenarPor: String = "lift"): [ReglaAsociacionEnriquecida!]!
+
+    """
+    Obtiene la distribución actual de clientes por segmentos de consumo.
+    Requiere rol: GERENTE
+    """
+    distribucionClusters: DistribucionClustersResponse!
+
+    """
+    Obtiene la evolución en el tiempo de la migración de clientes entre segmentos.
+    Formatos esperados: YYYY-MM-DD.
+    Requiere rol: GERENTE
+    """
+    evolucionClusters(fechaInicio: String!, fechaFin: String!, intervalo: String = "MENSUAL"): EvolucionClustersResponse!
+
+    """
+    Genera una matriz de co-ocurrencia de rutas para análisis visual.
+    Requiere rol: GERENTE
+    """
+    mapaRutasComplementarias: MapaRutasComplementariasResponse!
+
+    """
+    Analiza qué destinos frecuenta cada cluster de mercado.
+    Requiere rol: GERENTE
+    """
+    rutasPorCluster(clusterId: Int!): RutasPorClusterResponse!
+}
+
+# Tipos de respuesta (basados en los DTOs existentes en Java)
+type KpisGeneralesResponse {
+    fechaSnapshot: String
+    segmentacion: SegmentacionResumen
+    reglasAsociacion: ReglasAsociacionResumen
+}
+
+type SegmentacionResumen {
+    totalUsuarios: Int
+    totalSegmentados: Int
+    clusters: [ClusterResumen]
+    conversionPorCluster: [ConversionCluster]
+}
+
+type ClusterResumen {
+    clusterId: Int
+    etiqueta: String
+    cantidad: Int
+    porcentaje: Float
+    ingresoPromedio: Float
+}
+
+type ConversionCluster {
+    clusterId: Int
+    tasaConversion: Float
+}
+
+type ReglasAsociacionResumen {
+    totalReglas: Int
+    reglasAltoLift: Int
+    supportPromedioTop20: Float
+    indiceCrossSelling: Int
+}
+
+type ReglaAsociacionEnriquecida {
+    antecedentes: [RutaBasica]
+    consecuente: RutaBasica
+    soporte: Float
+    confianza: Float
+    lift: Float
+    interpretacion: String
+}
+
+type RutaBasica {
+    idRuta: Int
+    descripcion: String
+}
+
+type DistribucionClustersResponse {
+    fechaUltimaSegmentacion: String
+    nClusters: Int
+    clusters: [ClusterDetalle]
+}
+
+type ClusterDetalle {
+    clusterId: Int
+    etiqueta: String
+    cantidadUsuarios: Int
+    porcentaje: Float
+    centroide: Centroide
+    metricas: Metricas
+}
+
+type Centroide {
+    totalGastado: Float
+    numReservas: Int
+    rutasDistintas: Int
+    promedioPasajeros: Float
+}
+
+type Metricas {
+    ingresoTotal: Float
+    ingresoPromedio: Float
+    tasaConversion: Float
+    ticketPromedio: Float
+}
+
+type EvolucionClustersResponse {
+    fechaInicio: String
+    fechaFin: String
+    intervalo: String
+    serie: [PuntoSerie]
+}
+
+type PuntoSerie {
+    fecha: String
+    clusters: [ClusterCantidad]
+}
+
+type ClusterCantidad {
+    clusterId: Int
+    cantidad: Int
+    porcentaje: Float
+}
+
+type MapaRutasComplementariasResponse {
+    rutas: [RutaBasica]
+    matriz: [CoOcurrencia]
+}
+
+type CoOcurrencia {
+    rutaOrigen: Int
+    rutaDestino: Int
+    lift: Float
+    confianza: Float
+}
+
+type RutasPorClusterResponse {
+    clusterId: Int
+    etiqueta: String
+    rutasFrecuentes: [RutaFrecuente]
+    reglasRelevantes: [ReglaAsociacionEnriquecida]
+}
+
+type RutaFrecuente {
+    idRuta: Int
+    descripcion: String
+    frecuencia: Int
+    ingresoTotal: Float
+}
