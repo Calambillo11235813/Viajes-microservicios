@@ -1,6 +1,5 @@
 import json
 import os
-from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -9,7 +8,7 @@ def reglas_asociacion(request):
     if request.method == 'GET':
         json_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            'api_reglas',
+            'model_files',
             'reglas_asociacion_final.json',
         )
         try:

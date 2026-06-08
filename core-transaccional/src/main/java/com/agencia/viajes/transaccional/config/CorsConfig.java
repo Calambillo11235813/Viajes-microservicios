@@ -23,6 +23,7 @@ public class CorsConfig {
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/graphql/**", config);
+        source.registerCorsConfiguration("/api/gerencial/**", config);
         source.registerCorsConfiguration("/**", config); // General mapping just in case
         
         return new CorsFilter(source);

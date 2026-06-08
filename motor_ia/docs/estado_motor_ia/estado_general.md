@@ -8,8 +8,8 @@
 |------|--------|
 | Framework | Django 5.2 + DRF configurado |
 | Servidor local | `python manage.py runserver` → `http://127.0.0.1:8000/` |
-| Casos de uso activos | 3 de 5 (CU06, CU07, CU08) |
-| Estado general | En desarrollo |
+| Casos de uso activos | 6 de 6 (CU06–CU11) |
+| Estado general | Implementado localmente; pendiente integración completa con Microservicio A |
 
 ---
 
@@ -29,6 +29,33 @@
 
 ## Machine Learning (Análisis predictivo)
 
-- [ ] **CU09: Recomendación personalizada de destinos**
-- [ ] **CU10: Detección de patrones de viaje**
+- [x] **CU09: Recomendación personalizada de destinos**
+  - Endpoint `POST /api/recomendar-ruta/api/v1/recomendar-ruta/` operativo. Random Forest + LabelEncoders.
+  - Integrado con `core-transaccional` vía `RecomendacionService`.
+  - Detalle: [CU09_Recomendacion_Personalizada_2026-06-08.md](./CU09_Recomendacion_Personalizada_2026-06-08.md)
+- [x] **CU10: Detección de patrones de viaje**
+  - Endpoint `GET /api/reglas-asociacion/` operativo. Reglas de asociación (Apriori) precalculadas en JSON.
+  - Detalle: [CU10_Deteccion_Patrones_2026-06-08.md](./CU10_Deteccion_Patrones_2026-06-08.md)
+- [x] **CU11: Segmentación de clientes**
+  - Endpoints `POST /api/segmentar-usuario/segmentar-usuario/` y `GET /api/segmentar-usuario/estadisticas-clusters/` operativos. K-Means + StandardScaler.
+  - Detalle: [CU11_Segmentacion_Clientes_2026-06-08.md](./CU11_Segmentacion_Clientes_2026-06-08.md)
 
+---
+
+## Mapa rápido de endpoints
+
+| CU | Método | URL completa |
+|----|--------|--------------|
+| CU06 | POST | `/api/predict/` |
+| CU07 | POST | `/api/generar-reel/` |
+| CU08 | POST | `/api/traducir-imagen/` |
+| CU09 | POST | `/api/recomendar-ruta/api/v1/recomendar-ruta/` |
+| CU10 | GET | `/api/reglas-asociacion/` |
+| CU11 | POST | `/api/segmentar-usuario/segmentar-usuario/` |
+| CU11 | GET | `/api/segmentar-usuario/estadisticas-clusters/` |
+
+---
+
+## Despliegue
+
+- Notas Docker: [NOTAS_DESPLIEGUE_DOCKER.md](./NOTAS_DESPLIEGUE_DOCKER.md)
