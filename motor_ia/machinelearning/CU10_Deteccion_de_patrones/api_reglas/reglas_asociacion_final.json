@@ -1,0 +1,1702 @@
+[
+  {
+    "antecedents": [
+      10,
+      11,
+      14
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 11",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.103,
+    "confidence": 0.6519,
+    "lift": 1.23
+  },
+  {
+    "antecedents": [
+      10,
+      3,
+      5
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 3",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.111,
+    "confidence": 0.6307,
+    "lift": 1.22
+  },
+  {
+    "antecedents": [
+      2,
+      3,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 3",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.095,
+    "confidence": 0.6333,
+    "lift": 1.22
+  },
+  {
+    "antecedents": [
+      2,
+      5,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 5",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.095,
+    "confidence": 0.625,
+    "lift": 1.21
+  },
+  {
+    "antecedents": [
+      3,
+      13,
+      6
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 13",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.103,
+    "confidence": 0.6398,
+    "lift": 1.2
+  },
+  {
+    "antecedents": [
+      8,
+      9,
+      11
+    ],
+    "consequents": 14,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 9",
+      "Ruta 11"
+    ],
+    "consequents_nombre": "Ruta 14",
+    "support": 0.101,
+    "confidence": 0.6601,
+    "lift": 1.2
+  },
+  {
+    "antecedents": [
+      3,
+      5,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 5",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.098,
+    "confidence": 0.6164,
+    "lift": 1.19
+  },
+  {
+    "antecedents": [
+      11,
+      12,
+      14
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 11",
+      "Ruta 12",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.102,
+    "confidence": 0.6335,
+    "lift": 1.19
+  },
+  {
+    "antecedents": [
+      4,
+      13,
+      6
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 4",
+      "Ruta 13",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.102,
+    "confidence": 0.6296,
+    "lift": 1.18
+  },
+  {
+    "antecedents": [
+      2,
+      4,
+      5
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 4",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.103,
+    "confidence": 0.6095,
+    "lift": 1.18
+  },
+  {
+    "antecedents": [
+      3,
+      14,
+      15
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 14",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.103,
+    "confidence": 0.6732,
+    "lift": 1.18
+  },
+  {
+    "antecedents": [
+      1,
+      2,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 2",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.094,
+    "confidence": 0.6104,
+    "lift": 1.18
+  },
+  {
+    "antecedents": [
+      3,
+      11,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 11",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.084,
+    "confidence": 0.6087,
+    "lift": 1.17
+  },
+  {
+    "antecedents": [
+      12,
+      5,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 12",
+      "Ruta 5",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.1,
+    "confidence": 0.6024,
+    "lift": 1.17
+  },
+  {
+    "antecedents": [
+      9,
+      3,
+      13
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 3",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.102,
+    "confidence": 0.622,
+    "lift": 1.17
+  },
+  {
+    "antecedents": [
+      10,
+      12,
+      13
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 12",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.11,
+    "confidence": 0.6215,
+    "lift": 1.17
+  },
+  {
+    "antecedents": [
+      2,
+      14,
+      6
+    ],
+    "consequents": 4,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 14",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 4",
+    "support": 0.093,
+    "confidence": 0.6503,
+    "lift": 1.17
+  },
+  {
+    "antecedents": [
+      1,
+      2,
+      4
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 2",
+      "Ruta 4"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.104,
+    "confidence": 0.6047,
+    "lift": 1.17
+  },
+  {
+    "antecedents": [
+      4,
+      14,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 4",
+      "Ruta 14",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.091,
+    "confidence": 0.6026,
+    "lift": 1.16
+  },
+  {
+    "antecedents": [
+      2,
+      3,
+      13
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 3",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.103,
+    "confidence": 0.6023,
+    "lift": 1.16
+  },
+  {
+    "antecedents": [
+      8,
+      10,
+      13
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 10",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.101,
+    "confidence": 0.5976,
+    "lift": 1.16
+  },
+  {
+    "antecedents": [
+      9,
+      11,
+      13
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 11",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.098,
+    "confidence": 0.5976,
+    "lift": 1.16
+  },
+  {
+    "antecedents": [
+      2,
+      11,
+      5
+    ],
+    "consequents": 13,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 11",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 13",
+    "support": 0.103,
+    "confidence": 0.6603,
+    "lift": 1.16
+  },
+  {
+    "antecedents": [
+      2,
+      13,
+      14
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 13",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.101,
+    "confidence": 0.6601,
+    "lift": 1.16
+  },
+  {
+    "antecedents": [
+      1,
+      3,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 3",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.093,
+    "confidence": 0.6,
+    "lift": 1.16
+  },
+  {
+    "antecedents": [
+      2,
+      11,
+      14
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 11",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.089,
+    "confidence": 0.6138,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      1,
+      11,
+      12
+    ],
+    "consequents": 7,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 11",
+      "Ruta 12"
+    ],
+    "consequents_nombre": "Ruta 7",
+    "support": 0.106,
+    "confidence": 0.6584,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      9,
+      3,
+      5
+    ],
+    "consequents": 14,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 3",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 14",
+    "support": 0.105,
+    "confidence": 0.6364,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      9,
+      2,
+      3
+    ],
+    "consequents": 13,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 2",
+      "Ruta 3"
+    ],
+    "consequents_nombre": "Ruta 13",
+    "support": 0.102,
+    "confidence": 0.6581,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      8,
+      9,
+      14
+    ],
+    "consequents": 11,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 9",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 11",
+    "support": 0.101,
+    "confidence": 0.6196,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      10,
+      3,
+      13
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 3",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.101,
+    "confidence": 0.5941,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      3,
+      12,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 12",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.098,
+    "confidence": 0.5976,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      10,
+      4,
+      15
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 4",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.117,
+    "confidence": 0.6573,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      5,
+      14,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 5",
+      "Ruta 14",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.098,
+    "confidence": 0.5939,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      9,
+      2,
+      5
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 2",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.098,
+    "confidence": 0.5939,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      2,
+      3,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 3",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.095,
+    "confidence": 0.5938,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      8,
+      11,
+      14
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 11",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.101,
+    "confidence": 0.6121,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      4,
+      5,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 4",
+      "Ruta 5",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.099,
+    "confidence": 0.5928,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      2,
+      3,
+      4
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 3",
+      "Ruta 4"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.093,
+    "confidence": 0.5962,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      11,
+      12,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 11",
+      "Ruta 12",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.09,
+    "confidence": 0.596,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      1,
+      4,
+      6
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 4",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.104,
+    "confidence": 0.6118,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      10,
+      3,
+      6
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 3",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.096,
+    "confidence": 0.6115,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      9,
+      4,
+      14
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 4",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.097,
+    "confidence": 0.5951,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      8,
+      10,
+      5
+    ],
+    "consequents": 11,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 10",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 11",
+    "support": 0.103,
+    "confidence": 0.6168,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      4,
+      13,
+      15
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 4",
+      "Ruta 13",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.102,
+    "confidence": 0.6108,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      10,
+      5,
+      14
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 5",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.107,
+    "confidence": 0.5912,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      11,
+      14,
+      6
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 11",
+      "Ruta 14",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.092,
+    "confidence": 0.6093,
+    "lift": 1.15
+  },
+  {
+    "antecedents": [
+      3,
+      13,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 13",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.095,
+    "confidence": 0.5901,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      9,
+      5,
+      13
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 5",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.102,
+    "confidence": 0.5896,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      10,
+      14,
+      15
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 14",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.107,
+    "confidence": 0.6524,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      2,
+      5,
+      6
+    ],
+    "consequents": 13,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 5",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 13",
+    "support": 0.099,
+    "confidence": 0.6513,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      2,
+      13,
+      15
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 13",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.103,
+    "confidence": 0.592,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      8,
+      5,
+      7
+    ],
+    "consequents": 11,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 5",
+      "Ruta 7"
+    ],
+    "consequents_nombre": "Ruta 11",
+    "support": 0.1,
+    "confidence": 0.6135,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      3,
+      4,
+      5
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 4",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.1,
+    "confidence": 0.5882,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      3,
+      11,
+      14
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 11",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.097,
+    "confidence": 0.6062,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      9,
+      3,
+      5
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 3",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.097,
+    "confidence": 0.5879,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      9,
+      5,
+      13
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 5",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.105,
+    "confidence": 0.6069,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      5,
+      3,
+      13
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 5",
+      "Ruta 3",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.104,
+    "confidence": 0.5876,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      2,
+      6,
+      7
+    ],
+    "consequents": 4,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 6",
+      "Ruta 7"
+    ],
+    "consequents_nombre": "Ruta 4",
+    "support": 0.101,
+    "confidence": 0.6352,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      8,
+      9,
+      12
+    ],
+    "consequents": 14,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 9",
+      "Ruta 12"
+    ],
+    "consequents_nombre": "Ruta 14",
+    "support": 0.098,
+    "confidence": 0.6282,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      2,
+      11,
+      15
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 11",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.089,
+    "confidence": 0.6054,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      1,
+      3,
+      6
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 3",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.097,
+    "confidence": 0.6062,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      8,
+      12,
+      14
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 12",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.098,
+    "confidence": 0.6049,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      10,
+      3,
+      14
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 3",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.101,
+    "confidence": 0.6048,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      10,
+      3,
+      15
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 3",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.111,
+    "confidence": 0.6491,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      13,
+      6,
+      15
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 13",
+      "Ruta 6",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.103,
+    "confidence": 0.6059,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      2,
+      4,
+      5
+    ],
+    "consequents": 10,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 4",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 10",
+    "support": 0.111,
+    "confidence": 0.6568,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      2,
+      11,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 11",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.085,
+    "confidence": 0.5862,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      3,
+      11,
+      12
+    ],
+    "consequents": 8,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 11",
+      "Ruta 12"
+    ],
+    "consequents_nombre": "Ruta 8",
+    "support": 0.098,
+    "confidence": 0.6087,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      5,
+      13,
+      7
+    ],
+    "consequents": 11,
+    "antecedents_nombre": [
+      "Ruta 5",
+      "Ruta 13",
+      "Ruta 7"
+    ],
+    "consequents_nombre": "Ruta 11",
+    "support": 0.113,
+    "confidence": 0.6108,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      1,
+      12,
+      6
+    ],
+    "consequents": 7,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 12",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 7",
+    "support": 0.105,
+    "confidence": 0.6481,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      2,
+      3,
+      5
+    ],
+    "consequents": 13,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 3",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 13",
+    "support": 0.105,
+    "confidence": 0.6481,
+    "lift": 1.14
+  },
+  {
+    "antecedents": [
+      11,
+      5,
+      15
+    ],
+    "consequents": 9,
+    "antecedents_nombre": [
+      "Ruta 11",
+      "Ruta 5",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 9",
+    "support": 0.096,
+    "confidence": 0.6038,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      4,
+      12,
+      13
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 4",
+      "Ruta 12",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.104,
+    "confidence": 0.6047,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      8,
+      10,
+      3
+    ],
+    "consequents": 12,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 10",
+      "Ruta 3"
+    ],
+    "consequents_nombre": "Ruta 12",
+    "support": 0.103,
+    "confidence": 0.6519,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      10,
+      4,
+      5
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 4",
+      "Ruta 5"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.117,
+    "confidence": 0.585,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      3,
+      9,
+      11
+    ],
+    "consequents": 14,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 9",
+      "Ruta 11"
+    ],
+    "consequents_nombre": "Ruta 14",
+    "support": 0.097,
+    "confidence": 0.6258,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      3,
+      11,
+      13
+    ],
+    "consequents": 8,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 11",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 8",
+    "support": 0.099,
+    "confidence": 0.6074,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      9,
+      4,
+      13
+    ],
+    "consequents": 2,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 4",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 2",
+    "support": 0.093,
+    "confidence": 0.6039,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      10,
+      3,
+      7
+    ],
+    "consequents": 4,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 3",
+      "Ruta 7"
+    ],
+    "consequents_nombre": "Ruta 4",
+    "support": 0.11,
+    "confidence": 0.6322,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      1,
+      2,
+      3
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 2",
+      "Ruta 3"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.097,
+    "confidence": 0.5879,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      11,
+      12,
+      4
+    ],
+    "consequents": 7,
+    "antecedents_nombre": [
+      "Ruta 11",
+      "Ruta 12",
+      "Ruta 4"
+    ],
+    "consequents_nombre": "Ruta 7",
+    "support": 0.106,
+    "confidence": 0.6463,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      2,
+      11,
+      15
+    ],
+    "consequents": 13,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 11",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 13",
+    "support": 0.095,
+    "confidence": 0.6463,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      11,
+      5,
+      15
+    ],
+    "consequents": 10,
+    "antecedents_nombre": [
+      "Ruta 11",
+      "Ruta 5",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 10",
+    "support": 0.104,
+    "confidence": 0.6541,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      10,
+      11,
+      15
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 11",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.104,
+    "confidence": 0.646,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      8,
+      2,
+      4
+    ],
+    "consequents": 12,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 2",
+      "Ruta 4"
+    ],
+    "consequents_nombre": "Ruta 12",
+    "support": 0.106,
+    "confidence": 0.6503,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      9,
+      12,
+      13
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 12",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.098,
+    "confidence": 0.5868,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      10,
+      11,
+      14
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 11",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.102,
+    "confidence": 0.6456,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      9,
+      2,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 9",
+      "Ruta 2",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.091,
+    "confidence": 0.5833,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      10,
+      11,
+      13
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 10",
+      "Ruta 11",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.111,
+    "confidence": 0.6453,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      8,
+      10,
+      6
+    ],
+    "consequents": 11,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 10",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 11",
+    "support": 0.093,
+    "confidence": 0.6078,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      3,
+      11,
+      15
+    ],
+    "consequents": 5,
+    "antecedents_nombre": [
+      "Ruta 3",
+      "Ruta 11",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 5",
+    "support": 0.089,
+    "confidence": 0.6449,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      8,
+      3,
+      13
+    ],
+    "consequents": 11,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 3",
+      "Ruta 13"
+    ],
+    "consequents_nombre": "Ruta 11",
+    "support": 0.099,
+    "confidence": 0.6074,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      8,
+      2,
+      15
+    ],
+    "consequents": 13,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 2",
+      "Ruta 15"
+    ],
+    "consequents_nombre": "Ruta 13",
+    "support": 0.096,
+    "confidence": 0.6443,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      1,
+      11,
+      4
+    ],
+    "consequents": 7,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 11",
+      "Ruta 4"
+    ],
+    "consequents_nombre": "Ruta 7",
+    "support": 0.105,
+    "confidence": 0.6442,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      11,
+      13,
+      6
+    ],
+    "consequents": 15,
+    "antecedents_nombre": [
+      "Ruta 11",
+      "Ruta 13",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 15",
+    "support": 0.096,
+    "confidence": 0.5818,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      2,
+      3,
+      6
+    ],
+    "consequents": 13,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 3",
+      "Ruta 6"
+    ],
+    "consequents_nombre": "Ruta 13",
+    "support": 0.103,
+    "confidence": 0.6437,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      2,
+      4,
+      14
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 2",
+      "Ruta 4",
+      "Ruta 14"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.093,
+    "confidence": 0.5849,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      8,
+      6,
+      7
+    ],
+    "consequents": 11,
+    "antecedents_nombre": [
+      "Ruta 8",
+      "Ruta 6",
+      "Ruta 7"
+    ],
+    "consequents_nombre": "Ruta 11",
+    "support": 0.097,
+    "confidence": 0.6062,
+    "lift": 1.13
+  },
+  {
+    "antecedents": [
+      1,
+      2,
+      10
+    ],
+    "consequents": 6,
+    "antecedents_nombre": [
+      "Ruta 1",
+      "Ruta 2",
+      "Ruta 10"
+    ],
+    "consequents_nombre": "Ruta 6",
+    "support": 0.1,
+    "confidence": 0.5848,
+    "lift": 1.13
+  }
+]

@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/generar-reel/', include('api_reels.urls')),
     path('api/traducir-imagen/', include('api_traductor.urls')),
     path('api/recomendar-ruta/', include('machinelearning.CU09_Recomendacion_personalizada.urls')),
+    path('api/reglas-asociacion/', include('machinelearning.CU10_Deteccion_de_patrones.urls')),
 ]
 
 # Servir archivos media (reels generados) en modo desarrollo
