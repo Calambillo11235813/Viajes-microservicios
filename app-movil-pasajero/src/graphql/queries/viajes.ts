@@ -52,20 +52,25 @@ export const GET_RUTAS = gql`
  * Consulta para buscar viajes programados disponibles basándose en el origen, destino y fecha.
  */
 export const BUSCAR_VIAJES = gql`
-  query BuscarViajes($origen: String!, $destino: String!, $fecha: String!) {
-    buscarRutasYHorariosDisponibles(origen: $origen, destino: $destino, fecha: $fecha) {
-      idViaje
-      idRuta
-      ciudadOrigen
-      ciudadDestino
-      fechaHoraSalida
-      fechaHoraLlegada
-      duracionEstimadaHoras
-      precioBase
-      idBus
-      tipoBus
-      capacidadTotalAsientos
-      estadoViaje
+  query BuscarViajes($origen: String!, $destino: String!, $fecha: String!, $pagina: Int, $tamanio: Int) {
+    buscarRutasYHorariosDisponibles(origen: $origen, destino: $destino, fecha: $fecha, pagina: $pagina, tamanio: $tamanio) {
+      contenido {
+        idViaje
+        idRuta
+        ciudadOrigen
+        ciudadDestino
+        fechaHoraSalida
+        fechaHoraLlegada
+        duracionEstimadaHoras
+        precioBase
+        idBus
+        tipoBus
+        capacidadTotalAsientos
+        estadoViaje
+      }
+      totalPaginas
+      paginaActual
+      tieneSiguiente
     }
   }
 `;

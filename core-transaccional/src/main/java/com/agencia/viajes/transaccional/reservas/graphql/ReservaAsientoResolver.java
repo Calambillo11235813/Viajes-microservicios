@@ -46,7 +46,15 @@ public class ReservaAsientoResolver {
             @Argument Integer idViaje,
             @Argument String numeroAsiento,
             @Argument String nombrePasajero,
-            @Argument String tipoPasajero) {
+            @Argument String tipoPasajero,
+            graphql.GraphQLContext context) {
+        
+        com.agencia.viajes.transaccional.usuarios.security.UsuarioAutenticado usuario = context.get("usuarioAutenticado");
+        if (usuario == null) throw new com.agencia.viajes.transaccional.usuarios.security.AccessDeniedException("Token inválido o expirado");
+        if (!usuario.getIdUsuario().equals(idUsuario) && !"ADMINISTRADOR".equals(usuario.getRol())) {
+            throw new com.agencia.viajes.transaccional.usuarios.security.AccessDeniedException("No tienes permiso para crear reservas para otro usuario");
+        }
+
         return reservaAsientoService.seleccionarAsientoYReservar(
                 idUsuario,
                 idViaje,

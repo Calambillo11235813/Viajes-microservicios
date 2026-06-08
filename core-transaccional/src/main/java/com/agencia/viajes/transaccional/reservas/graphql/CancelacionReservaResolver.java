@@ -26,7 +26,15 @@ public class CancelacionReservaResolver {
     @MutationMapping
     public ReservaCanceladaResponse cancelarReserva(
             @Argument Integer idReserva,
-            @Argument Integer idUsuario) {
+            @Argument Integer idUsuario,
+            graphql.GraphQLContext context) {
+        
+        com.agencia.viajes.transaccional.usuarios.security.UsuarioAutenticado usuario = context.get("usuarioAutenticado");
+        if (usuario == null) throw new com.agencia.viajes.transaccional.usuarios.security.AccessDeniedException("Token inválido o expirado");
+        if (!usuario.getIdUsuario().equals(idUsuario) && !"ADMINISTRADOR".equals(usuario.getRol())) {
+            throw new com.agencia.viajes.transaccional.usuarios.security.AccessDeniedException("No tienes permiso para cancelar reservas de otro usuario");
+        }
+
         return cancelacionReservaService.cancelarReserva(idReserva, idUsuario);
     }
 }

@@ -4,21 +4,23 @@ type Query {
         destino: String!
         fecha: String!
         idUsuario: Int
-    ): [ViajeDisponible!]!
+        pagina: Int
+        tamanio: Int
+    ): PaginaViajes!
 
     obtenerMapaAsientos(idViaje: Int!): [AsientoEstado!]!
 
     obtenerPerfilUsuario(idUsuario: Int!): UsuarioPerfil!
 
-    consultarHistorialViajes(idUsuario: Int!): [HistorialViaje!]!
+    consultarHistorialViajes(idUsuario: Int!, pagina: Int, tamanio: Int): PaginaHistorial!
 
     listarUsuarios: [UsuarioPerfil!]!
     
     listarRoles: [Rol!]!
 
-    listarRutas: [RutaDestino!]!
+    listarRutas(pagina: Int, tamanio: Int): PaginaRutas!
 
-    listarViajesPorRuta(idRuta: Int!): [ViajeDisponible!]!
+    listarViajesPorRuta(idRuta: Int!, pagina: Int, tamanio: Int): PaginaViajes!
 
     generarReporteVentas(
         fechaInicio: String!
@@ -38,6 +40,9 @@ type Query {
     listarOrigenesHaciaDestinoTuristico(nombreDestino: String!): OrigenesDestinoTuristicoResponse!
 
     obtenerRecomendacionRuta(idUsuario: Int!, presupuesto: Float): RecomendacionRutaResponse!
+
+    buscarDestinosPorImagen(urlImagen: String!): [DestinoRecomendado!]!
+    generarReelTuristico(idRuta: Int!): ReelTuristico!
 }
 
 type Mutation {
@@ -148,6 +153,30 @@ type Mutation {
     ): Boolean!
 }
 
+type PaginaViajes {
+    contenido: [ViajeDisponible!]!
+    totalPaginas: Int!
+    totalElementos: Int!
+    paginaActual: Int!
+    tieneSiguiente: Boolean!
+}
+
+type PaginaHistorial {
+    contenido: [HistorialViaje!]!
+    totalPaginas: Int!
+    totalElementos: Int!
+    paginaActual: Int!
+    tieneSiguiente: Boolean!
+}
+
+type PaginaRutas {
+    contenido: [RutaDestino!]!
+    totalPaginas: Int!
+    totalElementos: Int!
+    paginaActual: Int!
+    tieneSiguiente: Boolean!
+}
+
 type ViajeDisponible {
     idViaje: ID!
     idRuta: ID!
@@ -247,6 +276,7 @@ type RutaDestino {
 type ReporteVentas {
     montoTotal: Float!
     cantidadPagos: Int!
+    ocupacionFlota: Float!
     fechaInicio: String!
     fechaFin: String!
     detallesPorFecha: [VentasPorFecha!]!
@@ -298,4 +328,15 @@ type RecomendacionRutaResponse {
 type TopRuta {
     idRuta: Int
     probabilidad: Float
+}
+
+type DestinoRecomendado {
+    ciudad: String!
+    porcentajeCoincidencia: Float!
+    descripcion: String!
+}
+
+type ReelTuristico {
+    urlVideo: String!
+    duracionSegundos: Int!
 }

@@ -37,9 +37,9 @@
         </div>
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
           <span class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Ocupación Promedio</span>
-          <span class="text-3xl font-bold text-indigo-600">84%</span>
+          <span class="text-3xl font-bold text-indigo-600">{{ ocupacionFlota }}%</span>
           <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-            <div class="bg-indigo-600 h-2 rounded-full" style="width: 84%"></div>
+            <div class="bg-indigo-600 h-2 rounded-full" [style.width.%]="ocupacionFlota"></div>
           </div>
         </div>
       </div>
@@ -48,7 +48,23 @@
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h2 class="text-lg font-bold text-gray-800 mb-4">Ingresos Diarios (Tendencia Mensual)</h2>
         <div class="h-80 w-full relative">
-          <canvas #chartIngresos></canvas>
+          <ngx-charts-line-chart
+            *ngIf="chartData.length > 0 && chartData[0].series.length > 0"
+            [scheme]="colorScheme"
+            [legend]="showLegend"
+            [showXAxisLabel]="showXAxisLabel"
+            [showYAxisLabel]="showYAxisLabel"
+            [xAxis]="showXAxis"
+            [yAxis]="showYAxis"
+            [xAxisLabel]="xAxisLabel"
+            [yAxisLabel]="yAxisLabel"
+            [timeline]="true"
+            [results]="chartData"
+            >
+          </ngx-charts-line-chart>
+          <div *ngIf="chartData.length === 0 || chartData[0].series.length === 0" class="flex items-center justify-center h-full text-gray-400">
+            No hay transacciones registradas para este periodo.
+          </div>
         </div>
       </div>
 

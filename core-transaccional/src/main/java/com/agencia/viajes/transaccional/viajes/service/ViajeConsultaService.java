@@ -3,6 +3,7 @@ package com.agencia.viajes.transaccional.viajes.service;
 import com.agencia.viajes.transaccional.flotas.model.Flota;
 import com.agencia.viajes.transaccional.navegacion.service.NavegacionService;
 import com.agencia.viajes.transaccional.rutas.model.RutaDestino;
+import com.agencia.viajes.transaccional.viajes.dto.PaginaViajesResponse;
 import com.agencia.viajes.transaccional.viajes.dto.ViajeDisponibleResponse;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
 import com.agencia.viajes.transaccional.viajes.repository.ViajeProgramadoRepository;
@@ -10,6 +11,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,36 +28,47 @@ public class ViajeConsultaService {
     private final NavegacionService navegacionService;
 
     /**
-     * Consulta viajes programados por origen, destino y fecha.
+     * Consulta viajes programados por origen, destino y fecha (paginado).
      *
      * @param origen ciudad de salida.
      * @param destino ciudad de llegada.
      * @param fecha fecha calendario de salida.
      * @param idUsuario identificador del usuario para tracking en DynamoDB (opcional).
+     * @param pagina número de página.
+     * @param tamanio tamaño de la página.
      * @return viajes disponibles ordenados por hora de salida.
      * @throws IllegalArgumentException cuando algún criterio obligatorio está vacío.
      */
     @Transactional(readOnly = true)
-    public List<ViajeDisponibleResponse> buscarRutasYHorariosDisponibles(
+    public PaginaViajesResponse buscarRutasYHorariosDisponibles(
             String origen,
             String destino,
             LocalDate fecha,
-            Integer idUsuario) {
+            Integer idUsuario,
+            int pagina,
+            int tamanio) {
         validarCriterios(origen, destino, fecha);
 
         LocalDateTime inicioDia = fecha.atStartOfDay();
         LocalDateTime finDia = fecha.plusDays(1).atStartOfDay();
 
-        List<ViajeDisponibleResponse> resultados = viajeProgramadoRepository
-                .buscarDisponiblesPorRutaYFecha(origen.trim(), destino.trim(), inicioDia, finDia)
-                .stream()
+        var pageable = PageRequest.of(pagina, tamanio, Sort.by(Sort.Direction.ASC, "fechaHoraSalida"));
+        var page = viajeProgramadoRepository
+                .buscarDisponiblesPorRutaYFechaPaginado(origen.trim(), destino.trim(), inicioDia, finDia, pageable);
+
+        var contenido = page.getContent().stream()
                 .map(this::mapearRespuesta)
                 .toList();
 
         navegacionService.registrarBusquedaRutaAsync(
-                idUsuario, origen.trim(), destino.trim(), fecha, resultados.size());
+                idUsuario, origen.trim(), destino.trim(), fecha, (int) page.getTotalElements());
 
-        return resultados;
+        return new PaginaViajesResponse(
+                contenido,
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.hasNext());
     }
 
     private void validarCriterios(String origen, String destino, LocalDate fecha) {

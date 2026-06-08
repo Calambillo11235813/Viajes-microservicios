@@ -1,7 +1,7 @@
 <div class="bg-white rounded-lg shadow p-6 relative">
   <div class="flex justify-between items-center mb-6">
     <h2 class="text-xl font-semibold text-gray-800">Inventario de Flotas de Buses</h2>
-    <button (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-medium">
+    <button *ngIf="authService.hasRole('ADMINISTRADOR')" (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-medium">
       + Registrar Bus
     </button>
   </div>
@@ -25,7 +25,7 @@
         <p><span class="font-medium text-gray-800">Tipo:</span> {{ flota.tipoBus }}</p>
         <p><span class="font-medium text-gray-800">Capacidad:</span> {{ flota.capacidadTotalAsientos }} Asientos</p>
       </div>
-      <div class="p-3 border-t bg-gray-50 flex justify-end space-x-2">
+      <div *ngIf="authService.hasRole('ADMINISTRADOR')" class="p-3 border-t bg-gray-50 flex justify-end space-x-2">
         <button (click)="openModal(flota)" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Editar</button>
         <button (click)="flota.idBus && eliminar(flota.idBus)" class="text-red-600 hover:text-red-800 font-medium text-sm">Eliminar</button>
       </div>

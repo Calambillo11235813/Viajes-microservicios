@@ -55,6 +55,10 @@ public class DatabaseSeeder implements CommandLineRunner {
     public void run(String... args) {
         Integer usuariosExistentes = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM USUARIO", Integer.class);
         if (usuariosExistentes != null && usuariosExistentes > 0) {
+            // Asegurarnos de que los usuarios estáticos siempre tengan la contraseña y email correctos aunque la DB ya exista
+            jdbcTemplate.update("UPDATE USUARIO SET email = 'cliente@viajes.com', password_hash = ? WHERE id_usuario = 1", passwordEncoder.encode("cliente123"));
+            jdbcTemplate.update("UPDATE USUARIO SET email = 'admin@viajes.com', password_hash = ? WHERE id_usuario = 2", passwordEncoder.encode("admin123"));
+            jdbcTemplate.update("UPDATE USUARIO SET email = 'gerente@viajes.com', password_hash = ? WHERE id_usuario = 3", passwordEncoder.encode("gerente123"));
             return;
         }
 
@@ -131,12 +135,12 @@ public class DatabaseSeeder implements CommandLineRunner {
         Set<String> ciGenerados = new HashSet<>();
         Set<String> emailsGenerados = new HashSet<>();
 
-        // USUARIO TEST ESTÁTICO PARA PODER LOGUEARNOS EN LA APP MÓVIL
+        // USUARIO ESTÁTICO PARA CLIENTE
         batch.add(new Object[] {
-            1, "1234567-SC", "Usuario Prueba API", "test@test.com", passwordEncoder.encode("123456"), "77766655", idRolCliente
+            1, "1234567-SC", "Cliente Frecuente", "cliente@viajes.com", passwordEncoder.encode("cliente123"), "77766655", idRolCliente
         });
         ciGenerados.add("1234567-SC");
-        emailsGenerados.add("test@test.com");
+        emailsGenerados.add("cliente@viajes.com");
 
         // USUARIOS ESTÁTICOS PARA EL FRONTEND ADMINISTRATIVO
         batch.add(new Object[] {

@@ -33,7 +33,12 @@ public class PagoResolver {
             @Argument String metodoPagoUsado,
             @Argument Double montoTransaccion,
             @Argument Boolean acreditado,
-            @Argument String cuponDescuentoAplicado) {
+            @Argument String cuponDescuentoAplicado,
+            graphql.GraphQLContext context) throws Exception {
+
+        com.agencia.viajes.transaccional.usuarios.security.UsuarioAutenticado usuario = context.get("usuarioAutenticado");
+        if (usuario == null) throw new com.agencia.viajes.transaccional.usuarios.security.AccessDeniedException("Token inválido o expirado");
+
         return pagoService.realizarPago(
                 idReserva,
                 metodoPagoUsado,

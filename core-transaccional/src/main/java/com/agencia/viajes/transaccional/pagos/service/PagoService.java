@@ -49,31 +49,51 @@ public class PagoService {
      * @return pago confirmado.
      * @throws IllegalArgumentException si la reserva no puede pagarse.
      */
-    @Transactional
+    @Transactional(noRollbackFor = com.agencia.viajes.transaccional.pagos.exception.PagoFallidoException.class)
     public PagoConfirmadoResponse realizarPago(
             Integer idReserva,
             String metodoPagoUsado,
             BigDecimal montoTransaccion,
             Boolean acreditado,
-            String cuponDescuentoAplicado) {
-        validarSolicitud(idReserva, metodoPagoUsado, montoTransaccion, acreditado);
+            String cuponDescuentoAplicado) throws com.agencia.viajes.transaccional.pagos.exception.PagoFallidoException {
+        
+        Reserva reserva = null;
+        if (idReserva != null) {
+            reserva = reservaRepository.buscarPorIdConBloqueoParaPago(idReserva)
+                    .orElseThrow(() -> new IllegalArgumentException("La reserva no existe."));
+            validarReservaPendiente(reserva);
+        }
 
-        Reserva reserva = reservaRepository.buscarPorIdConBloqueoParaPago(idReserva)
-                .orElseThrow(() -> new IllegalArgumentException("La reserva no existe."));
-        validarReservaPendiente(reserva);
-        validarPagoDuplicado(idReserva);
+        try {
+            validarSolicitud(idReserva, metodoPagoUsado, montoTransaccion, acreditado);
+            validarPagoDuplicado(idReserva);
 
-        BigDecimal montoUnitario = tarifaViajeService.calcularPrecioPorServicio(
-                reserva.getViajeProgramado().getRutaDestino().getPrecioBase(),
-                reserva.getViajeProgramado().getFlota().getTipoBus());
-        BigDecimal montoEsperado = montoUnitario.multiply(BigDecimal.valueOf(reserva.getCantidadPasajeros()));
-        validarMonto(montoTransaccion, montoEsperado);
+            BigDecimal montoUnitario = tarifaViajeService.calcularPrecioPorServicio(
+                    reserva.getViajeProgramado().getRutaDestino().getPrecioBase(),
+                    reserva.getViajeProgramado().getFlota().getTipoBus());
+            BigDecimal montoEsperado = montoUnitario.multiply(BigDecimal.valueOf(reserva.getCantidadPasajeros()));
+            validarMonto(montoTransaccion, montoEsperado);
 
-        Pago pago = crearPagoConfirmado(reserva, metodoPagoUsado, montoTransaccion, cuponDescuentoAplicado);
-        confirmarReservaYBoletos(reserva);
-        registrarEventoDespuesDelCommit(pago);
+            Pago pago = crearPagoConfirmado(reserva, metodoPagoUsado, montoTransaccion, cuponDescuentoAplicado);
+            confirmarReservaYBoletos(reserva);
+            registrarEventoDespuesDelCommit(pago);
 
-        return mapearRespuesta(pago);
+            return mapearRespuesta(pago);
+        } catch (IllegalArgumentException e) {
+            if (reserva != null && ESTADO_RESERVA_PENDIENTE.equals(reserva.getEstadoReserva())) {
+                cancelarReserva(reserva);
+            }
+            throw new com.agencia.viajes.transaccional.pagos.exception.PagoFallidoException("Pago fallido, reserva cancelada: " + e.getMessage());
+        }
+    }
+
+    private void cancelarReserva(Reserva reserva) {
+        reserva.setEstadoReserva("CANCELADA");
+        reservaRepository.save(reserva);
+        for (BoletoAsiento boleto : boletoAsientoRepository.findByReservaId(reserva.getId())) {
+            boleto.setEstadoBoleto("CANCELADO");
+            boletoAsientoRepository.save(boleto);
+        }
     }
 
     private void validarSolicitud(

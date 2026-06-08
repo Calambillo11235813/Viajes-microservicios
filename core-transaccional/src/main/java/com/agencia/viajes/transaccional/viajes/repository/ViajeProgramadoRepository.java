@@ -5,6 +5,8 @@ import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -17,12 +19,6 @@ public interface ViajeProgramadoRepository extends JpaRepository<ViajeProgramado
 
     /**
      * Busca viajes programados disponibles para una ruta y fecha calendario.
-     *
-     * @param origen ciudad de origen solicitada.
-     * @param destino ciudad de destino solicitada.
-     * @param inicioDia límite inferior inclusivo de la fecha de salida.
-     * @param finDia límite superior exclusivo de la fecha de salida.
-     * @return viajes programados que coinciden con los criterios.
      */
     @Query("""
             SELECT viaje
@@ -43,10 +39,39 @@ public interface ViajeProgramadoRepository extends JpaRepository<ViajeProgramado
             @Param("finDia") LocalDateTime finDia);
 
     /**
+     * Busca viajes disponibles con paginación.
+     */
+    @Query("""
+            SELECT viaje
+            FROM ViajeProgramado viaje
+            JOIN FETCH viaje.rutaDestino ruta
+            JOIN FETCH viaje.flota flota
+            WHERE LOWER(ruta.ciudadOrigen) = LOWER(:origen)
+              AND LOWER(ruta.ciudadDestino) = LOWER(:destino)
+              AND viaje.fechaHoraSalida >= :inicioDia
+              AND viaje.fechaHoraSalida < :finDia
+              AND viaje.estadoViaje = 'PROGRAMADO'
+            """)
+    Page<ViajeProgramado> buscarDisponiblesPorRutaYFechaPaginado(
+            @Param("origen") String origen,
+            @Param("destino") String destino,
+            @Param("inicioDia") LocalDateTime inicioDia,
+            @Param("finDia") LocalDateTime finDia,
+            Pageable pageable);
+
+    /**
+     * Lista viajes de una ruta específica con paginación.
+     */
+    @Query("""
+            SELECT v FROM ViajeProgramado v
+            JOIN FETCH v.rutaDestino r
+            JOIN FETCH v.flota f
+            WHERE r.id = :idRuta
+            """)
+    Page<ViajeProgramado> buscarPorRutaPaginado(@Param("idRuta") Integer idRuta, Pageable pageable);
+
+    /**
      * Recupera un viaje y bloquea su fila para serializar reservas concurrentes.
-     *
-     * @param idViaje identificador del viaje programado.
-     * @return viaje bloqueado con ruta y flota cargadas.
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
@@ -60,7 +85,6 @@ public interface ViajeProgramadoRepository extends JpaRepository<ViajeProgramado
 
     /**
      * Verifica si existe algún viaje programado para un bus que se solape con el rango de fechas.
-     * Excluye un ID de viaje específico para soportar actualizaciones.
      */
     @Query("""
             SELECT COUNT(v) FROM ViajeProgramado v
