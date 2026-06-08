@@ -1,0 +1,343 @@
+<div class="max-w-7xl mx-auto space-y-6 pb-12">
+  <!-- Top Panel: Formulario de Búsqueda -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">Buscar Salidas y Reservar Boletos</h2>
+        <p class="text-xs text-gray-500">Planifica tu viaje de manera fácil y rápida</p>
+      </div>
+      <button (click)="showIAPanel = !showIAPanel" class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
+        {{ showIAPanel ? 'Ocultar Búsqueda por Imagen (IA)' : 'Recomendación de Destino por Imagen (IA) 🤖' }}
+      </button>
+    </div>
+
+    <!-- Panel IA (Búsqueda por Imagen) -->
+    <div *ngIf="showIAPanel" class="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 transition-all duration-300">
+      <h3 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-1.5">
+        <span>🤖</span> Reconocimiento de Destinos Turísticos mediante IA (CU-06)
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">URL de la Imagen del Paisaje</label>
+            <input type="text" [(ngModel)]="imageUrl" class="w-full text-xs border border-gray-300 rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="https://ejemplo.com/paisaje.jpg">
+          </div>
+          <button (click)="buscarDestinosImagen()" [disabled]="isLoadingIA" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2.5 rounded-lg disabled:opacity-50 transition-colors">
+            {{ isLoadingIA ? 'Analizando Imagen...' : 'Analizar Imagen con IA' }}
+          </button>
+          
+          <div class="p-2 border border-dashed border-gray-300 rounded-lg bg-white flex justify-center">
+            <img [src]="imageUrl" alt="Preview paisaje" class="h-28 rounded object-cover">
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <p class="text-xs font-bold text-gray-700">Destinos sugeridos por coincidencia:</p>
+          <div *ngIf="destinosRecomendados.length === 0" class="text-xs text-gray-400 italic py-6 text-center">
+            No se han analizado imágenes aún.
+          </div>
+          <div class="space-y-2">
+            <div *ngFor="let dest of destinosRecomendados" class="p-3 bg-white rounded-lg shadow-xs border border-gray-200">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-xs text-gray-800">{{ dest.ciudad }}</span>
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">{{ dest.porcentajeCoincidencia | number:'1.0-1' }}% Coincidencia</span>
+              </div>
+              <p class="text-[11px] text-gray-500 leading-normal">{{ dest.descripcion }}</p>
+              <button (click)="searchForm.patchValue({destino: dest.ciudad}); showIAPanel = false; buscar()" class="mt-2 text-[10px] text-blue-600 hover:underline">Buscar viajes a {{ dest.ciudad }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de búsqueda normal -->
+    <form [formGroup]="searchForm" (ngSubmit)="buscar()" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1.5">Origen</label>
+        <input type="text" formControlName="origen" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej. Santa Cruz">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1.5">Destino</label>
+        <input type="text" formControlName="destino" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej. La Paz">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1.5">Fecha de Salida</label>
+        <input type="date" formControlName="fecha" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+      </div>
+      <div>
+        <button type="submit" [disabled]="isLoading" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm py-2.5 rounded-lg disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+          <span>🔍</span> Buscar Salidas
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Contenedor Principal: Resultados de Búsqueda y Selección de Asientos -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <!-- Columna Izquierda/Media: Lista de Viajes (Ocupa 2 cols en pantallas grandes) -->
+    <div class="lg:col-span-2 space-y-4">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-sm font-bold text-gray-800 mb-4">Salidas Programadas</h3>
+        
+        <div *ngIf="isLoading" class="text-center py-12">
+          <div class="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p class="text-xs text-gray-500 mt-2">Buscando viajes disponibles...</p>
+        </div>
+
+        <div *ngIf="!isLoading && viajes.length === 0 && hasSearched" class="text-center py-12 text-gray-500">
+          <p class="text-sm">No se encontraron salidas programadas para el origen, destino y fecha seleccionados.</p>
+          <p class="text-xs text-gray-400 mt-1">Intenta cambiar los parámetros de búsqueda.</p>
+        </div>
+
+        <div *ngIf="!isLoading && !hasSearched" class="text-center py-12 text-gray-400">
+          <p class="text-sm">Realiza una búsqueda para visualizar los itinerarios y flotas disponibles.</p>
+        </div>
+
+        <!-- Tabla/Listado de Viajes -->
+        <div *ngIf="!isLoading && viajes.length > 0" class="space-y-3">
+          <div *ngFor="let viaje of viajes" 
+               [class.border-blue-500]="viajeSeleccionado?.idViaje === viaje.idViaje"
+               [class.bg-blue-50]="viajeSeleccionado?.idViaje === viaje.idViaje"
+               class="p-4 border border-gray-200 rounded-lg hover:shadow-xs transition-shadow cursor-pointer flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            
+            <div class="space-y-1.5 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">{{ viaje.tipoBus }}</span>
+                <span class="text-xs text-gray-500">Capacidad: {{ viaje.capacidadTotalAsientos }} asientos</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+                <span>{{ viaje.ciudadOrigen }}</span>
+                <span class="text-gray-400 font-normal">➔</span>
+                <span>{{ viaje.ciudadDestino }}</span>
+              </div>
+              <div class="text-xs text-gray-600">
+                <div>📅 Salida: {{ viaje.fechaHoraSalida | date:'dd/MM/yyyy HH:mm' }}</div>
+                <div>🕒 Llegada: {{ viaje.fechaHoraLlegada | date:'dd/MM/yyyy HH:mm' }}</div>
+              </div>
+            </div>
+
+            <div class="flex flex-col md:items-end gap-2 shrink-0 w-full md:w-auto">
+              <span class="text-lg font-bold text-blue-600">{{ viaje.precioBase | currency:'Bs ' }}</span>
+              <div class="flex gap-2 w-full">
+                <!-- Botón Seleccionar -->
+                <button (click)="seleccionarViaje(viaje)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded transition-colors text-center">
+                  Elegir Asiento
+                </button>
+                <!-- Botón Generar Reel (CU-07) -->
+                <button (click)="generarReel(viaje.idRuta); $event.stopPropagation()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-xs px-3 py-2 rounded transition-colors text-center flex items-center justify-center gap-1">
+                  <span *ngIf="isLoadingReel && activeReelRutaId === viaje.idRuta" class="inline-block w-3 h-3 border-2 border-indigo-700 border-t-transparent rounded-full animate-spin"></span>
+                  🎬 Reel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel de Visualización del Reel Turístico si fue cargado -->
+      <div *ngIf="reelTuristico" class="bg-indigo-900 rounded-xl shadow-sm p-6 text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4">
+          <button (click)="reelTuristico = null" class="text-indigo-200 hover:text-white font-bold">✕ Cerrar</button>
+        </div>
+        <h3 class="text-sm font-bold text-indigo-300 mb-3 flex items-center gap-1">
+          🎬 Reel Turístico del Destino Generado por IA (CU-07)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div class="aspect-video bg-black rounded-lg flex items-center justify-center border border-indigo-700 relative">
+            <span class="absolute top-3 left-3 text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded-full">Procesado por Motor IA</span>
+            <div class="text-center p-4">
+              <p class="text-indigo-400 text-4xl mb-2">▶</p>
+              <p class="text-xs font-semibold text-gray-300">Reproduciendo Reel Publicitario</p>
+              <p class="text-[10px] text-gray-500 mt-1">URL: {{ reelTuristico.urlVideo }}</p>
+            </div>
+          </div>
+          <div class="space-y-2 text-xs">
+            <p class="font-bold text-sm text-indigo-100">¡Tu Reel personalizado está listo!</p>
+            <p class="text-indigo-200 leading-relaxed">El motor de Inteligencia Artificial ha editado dinámicamente clips turísticos sobre este tramo para mostrarte paisajes emblemáticos de la ruta, atractivos locales y duración estimada de {{ reelTuristico.duracionSegundos }} segundos.</p>
+            <div class="pt-2">
+              <a [href]="reelTuristico.urlVideo" target="_blank" class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-2 rounded text-xs transition-colors">
+                Abrir video en nueva pestaña
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Mapa de Asientos y Formulario de Reserva -->
+    <div class="space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6">
+        <h3 class="text-sm font-bold text-gray-800 mb-4">Selección de Asientos (CU-02)</h3>
+        
+        <div *ngIf="!viajeSeleccionado" class="text-center py-16 text-gray-400 text-xs">
+          <p>Selecciona una salida programada de la izquierda para ver el mapa de asientos del bus.</p>
+        </div>
+
+        <div *ngIf="viajeSeleccionado" class="space-y-6">
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <p class="text-xs font-bold text-gray-700">{{ viajeSeleccionado.ciudadOrigen }} ➔ {{ viajeSeleccionado.ciudadDestino }}</p>
+            <p class="text-[11px] text-gray-500 mt-0.5">Precio por asiento: <span class="font-bold text-blue-600">{{ viajeSeleccionado.precioBase | currency:'Bs ' }}</span></p>
+          </div>
+
+          <!-- Croquis de asientos -->
+          <div class="border border-gray-300 rounded-2xl p-4 bg-gray-100 max-w-[240px] mx-auto relative shadow-inner">
+            <div class="text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-300 pb-2 mb-4">Frente del Bus</div>
+            
+            <!-- Cabina Chofer -->
+            <div class="flex justify-between items-center mb-6 px-2">
+              <div class="w-8 h-8 rounded bg-gray-400 flex items-center justify-center text-xs text-white">⚙️</div>
+              <div class="w-8 h-8 rounded border-2 border-gray-400 border-dashed flex items-center justify-center text-[10px] text-gray-500">Chofer</div>
+            </div>
+
+            <!-- Grid de Asientos -->
+            <div class="grid grid-cols-4 gap-2 text-center">
+              <ng-container *ngFor="let asiento of asientos; let idx = index">
+                <!-- Asiento -->
+                <button 
+                  [disabled]="asiento.ocupado"
+                  (click)="elegirAsiento(asiento.numeroAsiento)"
+                  [class.bg-red-500]="asiento.ocupado"
+                  [class.text-white]="asiento.ocupado"
+                  [class.cursor-not-allowed]="asiento.ocupado"
+                  [class.bg-green-600]="asientoSeleccionado === asiento.numeroAsiento"
+                  [class.text-white]="asientoSeleccionado === asiento.numeroAsiento"
+                  [class.border-green-700]="asientoSeleccionado === asiento.numeroAsiento"
+                  [class.bg-white]="!asiento.ocupado && asientoSeleccionado !== asiento.numeroAsiento"
+                  [class.text-gray-700]="!asiento.ocupado && asientoSeleccionado !== asiento.numeroAsiento"
+                  [class.hover:bg-blue-50]="!asiento.ocupado && asientoSeleccionado !== asiento.numeroAsiento"
+                  [class.border-gray-300]="!asiento.ocupado && asientoSeleccionado !== asiento.numeroAsiento"
+                  class="h-8 border rounded flex items-center justify-center text-xs font-semibold transition-colors">
+                  {{ asiento.numeroAsiento }}
+                </button>
+                
+                <!-- Pasillo de bus después de la columna 2 -->
+                <div *ngIf="(idx + 1) % 4 === 2" class="col-span-1"></div>
+              </ng-container>
+            </div>
+
+            <div class="text-center text-[10px] font-bold text-gray-400 border-t border-gray-200 mt-6 pt-2">Atrás del Bus</div>
+          </div>
+
+          <!-- Leyenda -->
+          <div class="flex justify-center gap-4 text-[10px] text-gray-600 border-b border-gray-100 pb-4">
+            <div class="flex items-center gap-1.5"><div class="w-3.5 h-3.5 rounded border border-gray-300 bg-white"></div> Disponible</div>
+            <div class="flex items-center gap-1.5"><div class="w-3.5 h-3.5 rounded bg-green-600"></div> Seleccionado</div>
+            <div class="flex items-center gap-1.5"><div class="w-3.5 h-3.5 rounded bg-red-500"></div> Ocupado</div>
+          </div>
+
+          <!-- Formulario de Reserva -->
+          <form [formGroup]="reservaForm" (ngSubmit)="reservar()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Nombre Completo del Pasajero</label>
+              <input type="text" formControlName="nombrePasajero" class="w-full text-xs border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Tipo de Pasajero</label>
+              <select formControlName="tipoPasajero" class="w-full text-xs border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="ADULTO">Adulto</option>
+                <option value="MENOR">Menor de Edad</option>
+                <option value="TERCERA_EDAD">Tercera Edad</option>
+              </select>
+            </div>
+            
+            <div class="p-3 bg-blue-50 text-blue-800 rounded-lg text-xs" *ngIf="asientoSeleccionado">
+              Asiento seleccionado: <span class="font-bold">{{ asientoSeleccionado }}</span>
+            </div>
+
+            <button type="submit" [disabled]="!asientoSeleccionado || reservaForm.invalid" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold text-xs py-2.5 rounded-lg disabled:opacity-50 transition-colors shadow-sm">
+              Confirmar y Reservar Asiento
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Pago (CU-03) -->
+<div *ngIf="showPagoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 border border-gray-100 overflow-hidden relative">
+    <div class="absolute top-0 right-0 p-4">
+      <button (click)="cerrarPagoModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+    </div>
+
+    <!-- Éxito en Pago -->
+    <div *ngIf="pagoExitoso" class="text-center py-6 space-y-4">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-3xl mx-auto">✓</div>
+      <h3 class="text-lg font-bold text-gray-900">¡Pago Confirmado Exitosamente!</h3>
+      <p class="text-xs text-gray-600 leading-normal px-4">Tu pasaje ha sido emitido de manera oficial. Los datos de tu reserva han quedado registrados en la base de datos.</p>
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-left space-y-1.5 text-xs text-gray-700">
+        <div><span class="font-semibold">ID Reserva:</span> {{ reservaProvisional?.idReserva }}</div>
+        <div><span class="font-semibold">Boleto Nro:</span> {{ reservaProvisional?.idBoleto }}</div>
+        <div><span class="font-semibold">Asiento:</span> {{ reservaProvisional?.numeroAsiento }}</div>
+        <div><span class="font-semibold">Pasajero:</span> {{ reservaProvisional?.nombrePasajero }}</div>
+        <div><span class="font-semibold">Monto Pagado:</span> {{ reservaProvisional?.montoEstimado | currency:'Bs ' }}</div>
+      </div>
+      <div class="pt-4">
+        <button (click)="cerrarPagoModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2.5 rounded-lg transition-colors">
+          Cerrar y Volver
+        </button>
+      </div>
+    </div>
+
+    <!-- Formulario de Pago -->
+    <div *ngIf="!pagoExitoso" class="space-y-5">
+      <div>
+        <h3 class="text-base font-bold text-gray-900">Realizar Pago de Pasaje</h3>
+        <p class="text-xs text-gray-500">Completa tu transacción de manera segura (CU-03)</p>
+      </div>
+
+      <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 text-xs space-y-1.5 text-gray-700">
+        <div><span class="font-semibold text-gray-900">Ruta:</span> {{ viajeSeleccionado?.ciudadOrigen }} ➔ {{ viajeSeleccionado?.ciudadDestino }}</div>
+        <div><span class="font-semibold text-gray-900">Asiento:</span> {{ reservaProvisional?.numeroAsiento }}</div>
+        <div><span class="font-semibold text-gray-900">Pasajero:</span> {{ reservaProvisional?.nombrePasajero }} ({{ reservaProvisional?.tipoPasajero }})</div>
+        <div class="text-sm border-t border-gray-200 pt-1.5 mt-1.5 flex justify-between font-bold text-blue-600">
+          <span>Total a Pagar:</span>
+          <span>{{ reservaProvisional?.montoEstimado | currency:'Bs ' }}</span>
+        </div>
+      </div>
+
+      <!-- QR Visual Mock -->
+      <div class="p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col items-center">
+        <p class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">Código de Pago QR Dinámico</p>
+        
+        <!-- Mock QR using CSS grids -->
+        <div class="w-36 h-36 bg-white border border-gray-300 p-2 rounded flex flex-col justify-between">
+          <div class="flex justify-between">
+            <div class="w-8 h-8 bg-black"></div>
+            <div class="w-2 h-2 bg-black"></div>
+            <div class="w-8 h-8 bg-black"></div>
+          </div>
+          <div class="flex justify-center gap-1.5">
+            <div class="w-3 h-3 bg-black"></div>
+            <div class="w-3 h-3 bg-black"></div>
+            <div class="w-3 h-3 bg-black"></div>
+          </div>
+          <div class="flex justify-between items-end">
+            <div class="w-8 h-8 bg-black"></div>
+            <div class="w-3 h-3 bg-black"></div>
+            <div class="w-8 h-8 bg-black"></div>
+          </div>
+        </div>
+
+        <p class="text-[9px] text-gray-400 mt-2">Escanea desde tu aplicación de banco o billetera móvil</p>
+      </div>
+
+      <!-- Cupon Descuento -->
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Cupón de Descuento (Opcional)</label>
+        <input type="text" [(ngModel)]="cupon" class="w-full text-xs border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej. PROMO-10">
+      </div>
+
+      <div class="flex gap-3 pt-3">
+        <button type="button" (click)="cerrarPagoModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-xs py-2.5 rounded-lg transition-colors">
+          Cancelar Reserva
+        </button>
+        <button type="button" (click)="pagar()" [disabled]="isPaying" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center gap-1">
+          <span *ngIf="isPaying" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          Confirmar Pago Acreditado
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

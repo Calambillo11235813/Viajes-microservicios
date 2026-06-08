@@ -4,6 +4,7 @@ import com.agencia.viajes.transaccional.flotas.model.Flota;
 import com.agencia.viajes.transaccional.flotas.repository.FlotaRepository;
 import com.agencia.viajes.transaccional.rutas.model.RutaDestino;
 import com.agencia.viajes.transaccional.rutas.repository.RutaDestinoRepository;
+import com.agencia.viajes.transaccional.viajes.dto.PaginaViajesResponse;
 import com.agencia.viajes.transaccional.viajes.dto.ViajeDisponibleResponse;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
 import com.agencia.viajes.transaccional.viajes.repository.ViajeProgramadoRepository;
@@ -11,6 +12,9 @@ import com.agencia.viajes.transaccional.viajes.service.TarifaViajeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,9 +36,20 @@ public class RutasAdminService {
 
     // --- Gestión de Rutas ---
 
+    /**
+     * Lista todas las rutas (Paginado).
+     */
     @Transactional(readOnly = true)
-    public List<RutaDestino> listarRutas() {
-        return rutaDestinoRepository.findAll();
+    public com.agencia.viajes.transaccional.rutas.dto.PaginaRutasResponse listarRutas(int pagina, int tamanio) {
+        Pageable pageable = PageRequest.of(pagina, tamanio);
+        Page<RutaDestino> page = rutaDestinoRepository.findAll(pageable);
+        return new com.agencia.viajes.transaccional.rutas.dto.PaginaRutasResponse(
+                page.getContent(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.hasNext()
+        );
     }
 
     @Transactional
@@ -74,13 +89,21 @@ public class RutasAdminService {
     // --- Gestión de Viajes (Horarios) ---
 
     @Transactional(readOnly = true)
-    public List<ViajeDisponibleResponse> listarViajesPorRuta(Integer idRuta) {
-        // Obtenemos todos los viajes de una ruta, independientemente de la fecha.
-        // Para simplificar usamos findAll y filtramos, aunque en un entorno real habría un query específico.
-        return viajeProgramadoRepository.findAll().stream()
-                .filter(v -> v.getRutaDestino().getId().equals(idRuta))
+    public PaginaViajesResponse listarViajesPorRuta(Integer idRuta, int pagina, int tamanio) {
+        var pageable = org.springframework.data.domain.PageRequest.of(pagina, tamanio,
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "fechaHoraSalida"));
+        var page = viajeProgramadoRepository.buscarPorRutaPaginado(idRuta, pageable);
+
+        var contenido = page.getContent().stream()
                 .map(this::mapearRespuesta)
                 .collect(Collectors.toList());
+
+        return new PaginaViajesResponse(
+                contenido,
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.hasNext());
     }
 
     @Transactional

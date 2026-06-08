@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { GraphqlService } from '../../../core/services/graphql.service';
 import { RutaDestino } from '../../../core/models/business.models';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-rutas',
@@ -13,6 +14,7 @@ import { RutaDestino } from '../../../core/models/business.models';
 export class Rutas implements OnInit {
   private fb = inject(FormBuilder);
   private graphqlService = inject(GraphqlService);
+  public authService = inject(AuthService);
 
   rutas: RutaDestino[] = [];
   isLoading = false;
@@ -32,9 +34,9 @@ export class Rutas implements OnInit {
 
   cargarRutas() {
     this.isLoading = true;
-    this.graphqlService.listarRutas().subscribe({
+    this.graphqlService.listarRutas(0, 100).subscribe({
       next: (data) => {
-        this.rutas = data;
+        this.rutas = data.contenido;
         this.isLoading = false;
       },
       error: (err) => {

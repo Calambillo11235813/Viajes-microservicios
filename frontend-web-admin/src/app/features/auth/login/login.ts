@@ -37,6 +37,8 @@ export class Login {
         const idRol = res.perfil.idRol;
         if (idRol === 1) {
           this.router.navigate(['/admin']);
+        } else if (idRol === 2) {
+          this.router.navigate(['/cliente']);
         } else if (idRol === 3) {
           this.router.navigate(['/gerencia']);
         } else {

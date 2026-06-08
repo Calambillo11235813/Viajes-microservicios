@@ -5,6 +5,7 @@ import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -120,4 +121,16 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
     List<String> obtenerCategoriasPorFrecuencia(
             @Param("idUsuario") Integer idUsuario,
             Pageable pageable);
+
+    /**
+     * Recupera el historial de viajes de un usuario con paginación.
+     */
+    @Query("""
+            SELECT r FROM Reserva r
+            JOIN FETCH r.viajeProgramado v
+            JOIN FETCH v.rutaDestino ru
+            WHERE r.usuario.id = :idUsuario
+            """)
+    Page<Reserva> buscarHistorialPorUsuarioPaginado(@Param("idUsuario") Integer idUsuario, Pageable pageable);
 }
+

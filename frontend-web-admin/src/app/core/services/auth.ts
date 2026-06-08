@@ -85,6 +85,18 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  /**
+   * Verifica si el usuario actual tiene el rol especificado
+   */
+  hasRole(roleName: string): boolean {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+    if (roleName === 'ADMINISTRADOR' && user.idRol === 1) return true;
+    if (roleName === 'CLIENTE' && user.idRol === 2) return true;
+    if (roleName === 'GERENTE' && user.idRol === 3) return true;
+    return false;
+  }
+
   private saveSession(authResponse: AuthResponse): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('token', authResponse.token);

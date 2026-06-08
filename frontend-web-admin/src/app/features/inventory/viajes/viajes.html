@@ -21,19 +21,19 @@
   <div class="bg-white rounded-lg shadow p-6 md:col-span-3">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-semibold text-gray-800">Programación de Viajes</h2>
-      <button (click)="abrirModal()" [disabled]="!rutaSeleccionadaId" 
+      <button *ngIf="authService.hasRole('ADMINISTRADOR')" (click)="abrirModal()" [disabled]="!rutaSeleccionadaId" 
         class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded shadow text-sm font-medium">
         + Programar Salida
       </button>
     </div>
 
     <!-- Loading Viajes -->
-    <div *ngIf="isLoadingViajes" class="text-center py-10">
+    <div *ngIf="isLoadingViajes()" class="text-center py-10">
       <p class="text-gray-500">Cargando viajes programados...</p>
     </div>
 
     <!-- Table -->
-    <div *ngIf="!isLoadingViajes" class="overflow-x-auto">
+    <div *ngIf="!isLoadingViajes()" class="overflow-x-auto">
       <table class="min-w-full bg-white">
         <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
           <tr>
@@ -45,7 +45,7 @@
           </tr>
         </thead>
         <tbody class="text-sm text-gray-700">
-          <tr *ngFor="let viaje of viajes" class="border-b hover:bg-gray-50">
+          <tr *ngFor="let viaje of viajes()" class="border-b hover:bg-gray-50">
             <td class="py-3 px-4">#{{ viaje.idViaje }}</td>
             <td class="py-3 px-4 font-medium text-blue-800">{{ viaje.fechaHoraSalida | date:'short' }}</td>
             <td class="py-3 px-4 text-gray-500">{{ viaje.fechaHoraLlegada | date:'short' }}</td>
@@ -61,7 +61,7 @@
               </span>
             </td>
           </tr>
-          <tr *ngIf="viajes.length === 0 && rutaSeleccionadaId">
+          <tr *ngIf="viajes().length === 0 && rutaSeleccionadaId">
             <td colspan="5" class="py-8 text-center text-gray-500">No hay salidas programadas para esta ruta.</td>
           </tr>
           <tr *ngIf="!rutaSeleccionadaId">
@@ -69,6 +69,23 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Paginación -->
+      <div *ngIf="totalElementos() > 0" class="flex items-center justify-between mt-4 px-2">
+        <span class="text-sm text-gray-500">
+          Página {{ paginaActual() + 1 }} de {{ totalPaginas() }} ({{ totalElementos() }} registros)
+        </span>
+        <div class="flex space-x-2">
+          <button (click)="paginaAnterior()" [disabled]="paginaActual() === 0"
+            class="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            ← Anterior
+          </button>
+          <button (click)="paginaSiguiente()" [disabled]="!tieneSiguiente()"
+            class="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            Siguiente →
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

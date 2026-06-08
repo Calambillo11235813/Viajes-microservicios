@@ -18,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class NavegacionServiceTest {
 
@@ -30,6 +31,7 @@ class NavegacionServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        ReflectionTestUtils.setField(navegacionService, "dynamoDbEnabled", true);
     }
 
     @Test
@@ -116,6 +118,18 @@ class NavegacionServiceTest {
     @Test
     void registrarBusquedaRuta_sinIdUsuario_noPersiste() {
         navegacionService.registrarBusquedaRuta(null, "La Paz", "Uyuni", LocalDate.of(2026, 6, 7), 2);
+
+        verify(navegacionRepository, never()).guardar(any());
+    }
+
+    @Test
+    void registrarVisualizacion_dynamoDbDeshabilitado_noPersiste() {
+        ReflectionTestUtils.setField(navegacionService, "dynamoDbEnabled", false);
+
+        VisualizacionRutaRequest request = new VisualizacionRutaRequest(
+                1, 10, "La Paz", "Uyuni", "APP_MOVIL", "Aventura", "La Paz", "Uyuni", 10, 0, "android");
+
+        navegacionService.registrarVisualizacion(request);
 
         verify(navegacionRepository, never()).guardar(any());
     }

@@ -68,7 +68,7 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
     );
   }
 
-  const viajes = data?.buscarRutasYHorariosDisponibles || [];
+  const viajes = data?.buscarRutasYHorariosDisponibles?.contenido ?? [];
 
   return (
     <View style={globalStyles.safeAreaContainer}>

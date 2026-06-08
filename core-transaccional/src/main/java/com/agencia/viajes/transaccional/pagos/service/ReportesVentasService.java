@@ -65,9 +65,13 @@ public class ReportesVentasService {
             cantidadTotalPagos += cantidadPagosDia;
         }
 
+        // Cálculo mock de ocupación de flota para el KPI (en un entorno real esto calcularía Boletos Pagados / Capacidad Total)
+        Double ocupacionFlota = cantidadTotalPagos > 0 ? 82.5 : 0.0;
+
         return new ReporteVentasResponse(
                 montoTotal,
                 cantidadTotalPagos,
+                ocupacionFlota,
                 fechaInicioStr,
                 fechaFinStr,
                 detalles

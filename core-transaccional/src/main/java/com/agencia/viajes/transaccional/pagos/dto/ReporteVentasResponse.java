@@ -9,6 +9,7 @@ import java.util.List;
 public record ReporteVentasResponse(
         BigDecimal montoTotal,
         Integer cantidadPagos,
+        Double ocupacionFlota,
         String fechaInicio,
         String fechaFin,
         List<VentasPorFechaResponse> detallesPorFecha

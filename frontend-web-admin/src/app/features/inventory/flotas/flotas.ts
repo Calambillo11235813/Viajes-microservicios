@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { GraphqlService } from '../../../core/services/graphql.service';
 import { Flota } from '../../../core/models/business.models';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-flotas',
@@ -14,6 +15,7 @@ import { Flota } from '../../../core/models/business.models';
 export class Flotas implements OnInit {
   private fb = inject(FormBuilder);
   private graphql = inject(GraphqlService);
+  public authService = inject(AuthService);
 
   flotas: Flota[] = [];
   flotaForm: FormGroup;

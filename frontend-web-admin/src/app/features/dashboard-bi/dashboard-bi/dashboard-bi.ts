@@ -1,88 +1,81 @@
-import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
 import { GraphqlService } from '../../../core/services/graphql.service';
-import Chart from 'chart.js/auto';
+import { NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
 
 @Component({
   selector: 'app-dashboard-bi',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './dashboard-bi.html'
+  imports: [CommonModule, NgxChartsModule],
+  templateUrl: './dashboard-bi.html',
+  styleUrls: ['./dashboard-bi.css']
 })
-export class DashboardBi implements OnInit, AfterViewInit {
+export class DashboardBi implements OnInit {
   private authService = inject(AuthService);
   private graphqlService = inject(GraphqlService);
   private router = inject(Router);
 
-  @ViewChild('chartIngresos') chartIngresos!: ElementRef;
-  chartInstance: any;
-
   montoTotalMes = 0;
   cantidadPagosMes = 0;
+  ocupacionFlota = 0;
   isLoading = true;
+
+  // ngx-charts configuration
+  chartData: any[] = [];
+  view: [number, number] = [700, 400];
+  showXAxis = true;
+  showYAxis = true;
+  gradient = false;
+  showLegend = false;
+  showXAxisLabel = true;
+  xAxisLabel = 'Fecha';
+  showYAxisLabel = true;
+  yAxisLabel = 'Ingresos (Bs)';
+  
+  // Custom scheme
+  colorScheme: any = {
+    name: 'custom',
+    selectable: true,
+    group: ScaleType.Ordinal,
+    domain: ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+  };
 
   ngOnInit() {
     this.cargarDatos();
   }
 
-  ngAfterViewInit() {
-    // Canvas ready
-  }
-
   cargarDatos() {
     // Rango: Todo el mes actual
     const hoy = new Date();
-    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString();
-    const fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59).toISOString();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const inicio = `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-01`;
+    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+    const fin = `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-${pad(ultimoDia)}`;
 
     this.graphqlService.generarReporteVentas(inicio, fin).subscribe({
       next: (reporte) => {
         this.montoTotalMes = reporte.montoTotal;
         this.cantidadPagosMes = reporte.cantidadPagos;
-        this.isLoading = false;
+        this.ocupacionFlota = reporte.ocupacionFlota;
         
-        setTimeout(() => this.renderChart(reporte.detallesPorFecha), 100);
+        // Map data for ngx-charts
+        this.chartData = [
+          {
+            name: 'Ingresos Diarios',
+            series: reporte.detallesPorFecha.map(d => ({
+              name: new Date(d.fecha).toLocaleDateString(),
+              value: d.montoDia
+            }))
+          }
+        ];
+        
+        this.isLoading = false;
       },
       error: (err) => {
         console.error(err);
         this.isLoading = false;
-      }
-    });
-  }
-
-  renderChart(detalles: any[]) {
-    if(this.chartInstance) {
-      this.chartInstance.destroy();
-    }
-
-    const labels = detalles.map(d => new Date(d.fecha).toLocaleDateString());
-    const data = detalles.map(d => d.montoDia);
-
-    const ctx = this.chartIngresos.nativeElement.getContext('2d');
-    this.chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Ingresos (Bs)',
-          data: data,
-          borderColor: '#4f46e5',
-          backgroundColor: 'rgba(79, 70, 229, 0.1)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: { beginAtZero: true }
-        }
       }
     });
   }

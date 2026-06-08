@@ -11,6 +11,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,9 @@ public class NavegacionService {
     private static final String CANAL_DEFAULT = "GRAPHQL";
 
     private final NavegacionRepository navegacionRepository;
+
+    @Value("${aws.dynamodb.enabled:true}")
+    private boolean dynamoDbEnabled;
 
     /**
      * Registra la visualización de una ruta por parte de un usuario.
@@ -119,6 +123,14 @@ public class NavegacionService {
     }
 
     private void persistirSilenciosamente(NavegacionItem item) {
+        if (!dynamoDbEnabled) {
+            log.debug(
+                    "Tracking DynamoDB deshabilitado; se omite escritura (tipo={}, usuario={})",
+                    item.getTipoEvento(),
+                    item.getIdUsuario());
+            return;
+        }
+
         try {
             navegacionRepository.guardar(item);
         } catch (Exception e) {

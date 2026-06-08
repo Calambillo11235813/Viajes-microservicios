@@ -44,6 +44,7 @@ export default function HomeScreen({ navigation }: Props) {
   }, [user?.idUsuario]);
 
   const { data, loading, error } = useQuery<GetRutasData>(GET_RUTAS, {
+    variables: { pagina: 0, tamanio: 500 },
     fetchPolicy: 'cache-first',
   });
 
@@ -70,7 +71,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'origen' | 'destino'>('origen');
 
-  const rutas = useMemo<RutaResumen[]>(() => data?.listarRutas ?? [], [data]);
+  const rutas = useMemo<RutaResumen[]>(() => data?.listarRutas?.contenido ?? [], [data]);
 
   const sections = useMemo<HomeSection[]>(
     () => ['recommendation', 'searchForm'],

@@ -22,6 +22,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 class ViajeConsultaServiceTest {
 
@@ -50,17 +53,18 @@ class ViajeConsultaServiceTest {
         LocalDate fecha = LocalDate.of(2026, 6, 7);
         ViajeProgramado viaje = crearViajeProgramadoMock();
 
-        when(viajeProgramadoRepository.buscarDisponiblesPorRutaYFecha(
-                        eq("La Paz"), eq("Uyuni"), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(List.of(viaje));
+        Page<ViajeProgramado> page = new PageImpl<>(List.of(viaje));
+        when(viajeProgramadoRepository.buscarDisponiblesPorRutaYFechaPaginado(
+                        eq("La Paz"), eq("Uyuni"), any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(page);
         when(tarifaViajeService.calcularPrecioPorServicio(any(BigDecimal.class), any(String.class)))
                 .thenReturn(new BigDecimal("150.00"));
 
         var resultados = viajeConsultaService.buscarRutasYHorariosDisponibles(
-                "La Paz", "Uyuni", fecha, 1);
+                "La Paz", "Uyuni", fecha, 1, 0, 15);
 
         assertNotNull(resultados);
-        assertEquals(1, resultados.size());
+        assertEquals(1, resultados.contenido().size());
         verify(navegacionService)
                 .registrarBusquedaRutaAsync(eq(1), eq("La Paz"), eq("Uyuni"), eq(fecha), eq(1));
     }

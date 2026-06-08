@@ -10,6 +10,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.agencia.viajes.transaccional.usuarios.security.JwtTokenProvider;
+
 /**
  * Servicio para autenticación y autorización (Login).
  */
@@ -20,6 +22,7 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final com.agencia.viajes.transaccional.config.PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * Valida las credenciales e inicia sesión.
@@ -46,8 +49,8 @@ public class AuthService {
             throw new SecurityException("Acceso denegado: El usuario no tiene un rol permitido (Cliente, Administrador o Gerente).");
         }
 
-        // TODO: Reemplazar por un token JWT real
-        String tokenMock = UUID.randomUUID().toString();
+        // Generar un token JWT real
+        String tokenJwt = jwtTokenProvider.generateToken(usuario.getId(), usuario.getEmail(), nombreRol);
 
         UsuarioPerfilResponse perfil = new UsuarioPerfilResponse(
                 usuario.getId(),
@@ -58,6 +61,6 @@ public class AuthService {
                 usuario.getIdRol()
         );
 
-        return new AuthResponse(tokenMock, perfil);
+        return new AuthResponse(tokenJwt, perfil);
     }
 }

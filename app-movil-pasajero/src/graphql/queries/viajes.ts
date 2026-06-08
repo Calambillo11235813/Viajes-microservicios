@@ -22,8 +22,15 @@ export interface RecomendacionRuta {
   advertencia: string | null;
 }
 
+export interface PaginaRutas {
+  contenido: RutaResumen[];
+  totalPaginas: number;
+  paginaActual: number;
+  tieneSiguiente: boolean;
+}
+
 export interface GetRutasData {
-  listarRutas: RutaResumen[];
+  listarRutas: PaginaRutas;
 }
 
 export interface ObtenerRecomendacionRutaVars {
@@ -52,26 +59,40 @@ export interface ViajeDisponible {
   estadoViaje: string;
 }
 
+export interface PaginaViajes {
+  contenido: ViajeDisponible[];
+  totalPaginas: number;
+  paginaActual: number;
+  tieneSiguiente: boolean;
+}
+
 export interface BuscarViajesVars {
   origen: string;
   destino: string;
   fecha: string;
   idUsuario?: number;
+  pagina?: number;
+  tamanio?: number;
 }
 
 export interface BuscarViajesData {
-  buscarRutasYHorariosDisponibles: ViajeDisponible[];
+  buscarRutasYHorariosDisponibles: PaginaViajes;
 }
 
 /**
  * Consulta para obtener todas las rutas disponibles (Origen y Destino).
  */
 export const GET_RUTAS = gql`
-  query GetRutas {
-    listarRutas {
-      id
-      ciudadOrigen
-      ciudadDestino
+  query GetRutas($pagina: Int, $tamanio: Int) {
+    listarRutas(pagina: $pagina, tamanio: $tamanio) {
+      contenido {
+        id
+        ciudadOrigen
+        ciudadDestino
+      }
+      totalPaginas
+      paginaActual
+      tieneSiguiente
     }
   }
 `;
@@ -80,26 +101,40 @@ export const GET_RUTAS = gql`
  * Consulta para buscar viajes programados disponibles basándose en el origen, destino y fecha.
  */
 export const BUSCAR_VIAJES = gql`
-  query BuscarViajes($origen: String!, $destino: String!, $fecha: String!, $idUsuario: Int) {
+  query BuscarViajes(
+    $origen: String!
+    $destino: String!
+    $fecha: String!
+    $idUsuario: Int
+    $pagina: Int
+    $tamanio: Int
+  ) {
     buscarRutasYHorariosDisponibles(
       origen: $origen
       destino: $destino
       fecha: $fecha
       idUsuario: $idUsuario
+      pagina: $pagina
+      tamanio: $tamanio
     ) {
-      idViaje
-      idRuta
-      ciudadOrigen
-      ciudadDestino
-      fechaHoraSalida
-      fechaHoraLlegada
-      duracionEstimadaHoras
-      precioBase
-      categoriaTuristica
-      idBus
-      tipoBus
-      capacidadTotalAsientos
-      estadoViaje
+      contenido {
+        idViaje
+        idRuta
+        ciudadOrigen
+        ciudadDestino
+        fechaHoraSalida
+        fechaHoraLlegada
+        duracionEstimadaHoras
+        precioBase
+        categoriaTuristica
+        idBus
+        tipoBus
+        capacidadTotalAsientos
+        estadoViaje
+      }
+      totalPaginas
+      paginaActual
+      tieneSiguiente
     }
   }
 `;
