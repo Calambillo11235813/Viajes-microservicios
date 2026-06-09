@@ -57,6 +57,15 @@ class ReelScorer:
         )
         print("[CU-07] MobileNetV2 cargado exitosamente.")
 
+    def _calcular_nitidez(self, frame: np.ndarray) -> float:
+        """Calcula la varianza del Laplaciano (nitidez) de un fotograma BGR."""
+        gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        return float(cv2.Laplacian(gris, cv2.CV_64F).var())
+
+    def _combinar_puntuacion(self, riqueza_visual: float, nitidez: float) -> float:
+        """Combina riqueza visual y nitidez con pesos 70/30."""
+        return (riqueza_visual * 0.7) + (min(nitidez, 500) / 500 * 0.3)
+
     def puntuar_fotograma(self, frame: np.ndarray) -> float:
         """Evalúa la calidad de un fotograma combinando IA y visión computacional.
 
@@ -70,11 +79,8 @@ class ReelScorer:
         Returns:
             Puntuación final del fotograma (float, sin rango fijo).
         """
-        # A. Nitidez (Visión Computacional) — penaliza imágenes borrosas
-        gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        nitidez = cv2.Laplacian(gris, cv2.CV_64F).var()
+        nitidez = self._calcular_nitidez(frame)
 
-        # B. Riqueza Visual (Deep Learning) — busca contenido interesante
         img_resized = cv2.resize(frame, (224, 224))
         img_rgb = cv2.cvtColor(img_resized, cv2.COLOR_BGR2RGB)
         img_array = np.expand_dims(img_rgb, axis=0)
@@ -83,9 +89,38 @@ class ReelScorer:
         features = self.modelo.predict(img_preprocesada, verbose=0)
         riqueza_visual = float(np.linalg.norm(features))
 
-        # C. Puntuación ponderada
-        puntuacion_final = (riqueza_visual * 0.7) + (min(nitidez, 500) / 500 * 0.3)
-        return puntuacion_final
+        return self._combinar_puntuacion(riqueza_visual, nitidez)
+
+    def puntuar_fotogramas_batch(self, frames_bgr: list[np.ndarray]) -> list[float]:
+        """Puntúa múltiples fotogramas en una sola inferencia MobileNetV2.
+
+        Reduce el overhead de llamadas sucesivas a ``predict`` al evaluar
+        todos los bloques del video en batch.
+
+        Args:
+            frames_bgr: Lista de fotogramas en formato BGR (OpenCV).
+
+        Returns:
+            Lista de puntuaciones en el mismo orden que ``frames_bgr``.
+        """
+        if not frames_bgr:
+            return []
+
+        nitidez_scores = [self._calcular_nitidez(frame) for frame in frames_bgr]
+
+        batch_rgb = []
+        for frame in frames_bgr:
+            resized = cv2.resize(frame, (224, 224))
+            batch_rgb.append(cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+
+        batch = np.stack(batch_rgb, axis=0).astype(np.float32)
+        batch = preprocess_input(batch)
+        features = self.modelo.predict(batch, verbose=0)
+
+        return [
+            self._combinar_puntuacion(float(np.linalg.norm(feat)), nitidez_scores[i])
+            for i, feat in enumerate(features)
+        ]
 
 
 # Instancia global (Singleton) — se carga al importar el módulo

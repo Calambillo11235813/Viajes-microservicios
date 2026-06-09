@@ -62,7 +62,7 @@ export default function GenerarReelScreen() {
     const resultado = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
-      quality: 1,
+      quality: 0.7,
     });
 
     if (!resultado.canceled && resultado.assets && resultado.assets.length > 0) {
@@ -123,14 +123,14 @@ export default function GenerarReelScreen() {
         type: 'audio/mpeg',
       } as any);
       formData.append('duracion_reel', duracionReel.toString());
+      formData.append('duracion_clip', '10');
 
-      // 2. Enviar al Motor IA
+      // 2. Enviar al Motor IA (sin Content-Type manual — RN agrega boundary)
       const response = await fetch(CONFIG.AI_REEL_URL, {
         method: 'POST',
         body: formData,
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'multipart/form-data',
+          Accept: 'application/json',
         },
       });
 
@@ -138,6 +138,10 @@ export default function GenerarReelScreen() {
 
       if (!response.ok || !json.exito) {
         throw new Error(json.error || json.mensaje || 'Error desconocido al generar el reel.');
+      }
+
+      if (json.tiempos_procesamiento) {
+        console.log('[CU-07] Tiempos servidor:', json.tiempos_procesamiento);
       }
 
       // 3. Construir URL completa del reel generado
@@ -328,7 +332,7 @@ export default function GenerarReelScreen() {
               La IA esta analizando cada escena de tu video con Deep Learning (MobileNetV2) para seleccionar los mejores momentos.
             </Text>
             <Text style={styles.analyzingHint}>
-              Esto puede tardar entre 30 segundos y 2 minutos dependiendo del largo del video.
+              Esto puede tardar entre 30 y 60 segundos dependiendo del largo del video.
             </Text>
           </View>
         </View>

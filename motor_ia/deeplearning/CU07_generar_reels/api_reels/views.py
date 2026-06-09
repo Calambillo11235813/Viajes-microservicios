@@ -55,7 +55,7 @@ def generar_reel_view(request) -> JsonResponse:
     - ``video`` (File, requerido): Video largo de entrada.
     - ``audio`` (File, requerido): Pista musical para el reel.
     - ``duracion_reel`` (int, opcional): Duración deseada en segundos (default 60).
-    - ``duracion_clip`` (int, opcional): Duración de cada fragmento (default 5).
+    - ``duracion_clip`` (int, opcional): Duración de cada fragmento (default 10).
 
     Returns:
         JsonResponse con metadatos del reel generado y URL de descarga,
@@ -104,7 +104,7 @@ def generar_reel_view(request) -> JsonResponse:
     # ── Leer parámetros opcionales ───────────────────────────────────
     try:
         duracion_reel = int(request.POST.get('duracion_reel', 60))
-        duracion_clip = int(request.POST.get('duracion_clip', 5))
+        duracion_clip = int(request.POST.get('duracion_clip', 10))
     except (ValueError, TypeError):
         return JsonResponse(
             {'error': 'Los parámetros duracion_reel y duracion_clip deben ser enteros.'},
@@ -169,4 +169,5 @@ def generar_reel_view(request) -> JsonResponse:
         'clips_analizados': resultado['clips_analizados'],
         'fragmentos': resultado['fragmentos'],
         'archivo_descarga': url_descarga,
+        'tiempos_procesamiento': resultado.get('tiempos_procesamiento'),
     })

@@ -21,7 +21,7 @@ con los mejores momentos ordenados cronológicamente y musicalizado.
 | Método | `POST` |
 | URL | `http://127.0.0.1:8000/api/generar-reel/` |
 | Body | `multipart/form-data`, campos `video` (File) y `audio` (File) |
-| Parámetros opcionales | `duracion_reel` (int: 15, 30, 45 o 60), `duracion_clip` (int, default 5) |
+| Parámetros opcionales | `duracion_reel` (int: 15, 30, 45 o 60), `duracion_clip` (int, default 10) |
 | Límite de upload | 150 MB |
 
 ### Respuesta exitosa
@@ -134,3 +134,18 @@ deeplearning/CU07_generar_reels/
 - Soporte para múltiples resoluciones de salida (720p, 1080p)
 - Cola de procesamiento asíncrono (Celery) para videos pesados
 - Integración con Microservicio A (app móvil / backend principal)
+
+---
+
+## Optimizaciones de rendimiento (2026-06-09)
+
+| Mejora | Archivo | Efecto |
+|--------|---------|--------|
+| Análisis en proxy 480p | `services.py` | Decodificación más rápida al puntuar fotogramas |
+| Inferencia batch MobileNetV2 | `model_loader.py` | Una sola llamada `predict` por video |
+| `duracion_clip` default 10s | `views.py` | Mitad de bloques a analizar vs 5s |
+| Salida 720p + bitrate 800k | `services.py` | Render MoviePy más rápido |
+| Sin `Content-Type` manual | `GenerarReelScreen.tsx` | Upload multipart correcto en React Native |
+| Tiempos por fase | `services.py`, `views.py` | Campo `tiempos_procesamiento` en respuesta JSON |
+
+**Referencia de prueba:** video fixture 90s, reel 30s → ~48s total en CPU local (test unitario).
