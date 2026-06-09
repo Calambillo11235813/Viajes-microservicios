@@ -51,6 +51,48 @@ export const styles = StyleSheet.create({
   cardBody: {
     marginBottom: SPACING.sm,
   },
+  scheduleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  scheduleItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.xs,
+  },
+  scheduleTextBlock: {
+    flex: 1,
+  },
+  scheduleLabel: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    fontSize: 10,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  scheduleTime: {
+    ...TYPOGRAPHY.h3,
+    color: COLORS.primary,
+    fontSize: 18,
+  },
+  scheduleDate: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  scheduleDivider: {
+    paddingHorizontal: SPACING.xs,
+    alignSelf: 'center',
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

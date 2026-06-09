@@ -10,6 +10,21 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  expoGoBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.info + '12',
+    borderRadius: 8,
+    padding: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  expoGoBannerText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textPrimary,
+    flex: 1,
+    lineHeight: 18,
+  },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -92,13 +92,55 @@ public interface ViajeProgramadoRepository extends JpaRepository<ViajeProgramado
               AND v.estadoViaje != 'CANCELADO'
               AND v.fechaHoraSalida < :fin
               AND v.fechaHoraLlegada > :inicio
-              AND (:idViajeExcluido IS NULL OR v.id != :idViajeExcluido)
             """)
     long countSolapamientos(
             @Param("idBus") Integer idBus,
             @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin);
+
+    @Query("""
+            SELECT COUNT(v) FROM ViajeProgramado v
+            WHERE v.flota.idBus = :idBus
+              AND v.estadoViaje != 'CANCELADO'
+              AND v.fechaHoraSalida < :fin
+              AND v.fechaHoraLlegada > :inicio
+              AND v.id <> :idViajeExcluido
+            """)
+    long countSolapamientosExcluyendo(
+            @Param("idBus") Integer idBus,
+            @Param("inicio") LocalDateTime inicio,
             @Param("fin") LocalDateTime fin,
             @Param("idViajeExcluido") Integer idViajeExcluido);
+
+    @Query("""
+            SELECT v FROM ViajeProgramado v
+            JOIN FETCH v.rutaDestino r
+            WHERE v.flota.idBus = :idBus
+              AND v.estadoViaje != 'CANCELADO'
+              AND v.fechaHoraSalida < :fin
+              AND v.fechaHoraLlegada > :inicio
+              AND v.id <> :idViajeExcluido
+            ORDER BY v.fechaHoraSalida ASC
+            """)
+    List<ViajeProgramado> buscarSolapamientosExcluyendo(
+            @Param("idBus") Integer idBus,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin,
+            @Param("idViajeExcluido") Integer idViajeExcluido);
+
+    @Query("""
+            SELECT v FROM ViajeProgramado v
+            JOIN FETCH v.rutaDestino r
+            WHERE v.flota.idBus = :idBus
+              AND v.estadoViaje != 'CANCELADO'
+              AND v.fechaHoraSalida < :fin
+              AND v.fechaHoraLlegada > :inicio
+            ORDER BY v.fechaHoraSalida ASC
+            """)
+    List<ViajeProgramado> buscarSolapamientos(
+            @Param("idBus") Integer idBus,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin);
 
     /**
      * Busca viajes programados futuros hacia un destino específico (desde cualquier origen).

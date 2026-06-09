@@ -124,6 +124,15 @@ export interface ReelTuristico {
   duracionSegundos: number;
 }
 
+export interface UsuarioPerfil {
+  idUsuario: number;
+  ciPasaporte: string;
+  nombreCompleto: string;
+  email: string;
+  telefono?: string;
+  idRol: number;
+}
+
 // --- BI GERENCIAL MODELS ---
 export interface KpisGeneralesResponse {
   fechaSnapshot: string;

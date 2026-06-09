@@ -9,6 +9,7 @@ export const CONSULTAR_HISTORIAL_VIAJES = gql`
         ciudadOrigen
         ciudadDestino
         fechaHoraSalida
+        fechaHoraLlegada
         fechaCreacion
         estadoReserva
         montoTotalPagado

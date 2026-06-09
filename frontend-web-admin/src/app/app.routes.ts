@@ -21,7 +21,8 @@ export const routes: Routes = [
           { path: '', redirectTo: 'rutas', pathMatch: 'full' },
           { path: 'rutas', loadComponent: () => import('./features/inventory/rutas/rutas').then(m => m.Rutas) },
           { path: 'viajes', loadComponent: () => import('./features/inventory/viajes/viajes').then(m => m.Viajes) },
-          { path: 'flotas', loadComponent: () => import('./features/inventory/flotas/flotas').then(m => m.Flotas) }
+          { path: 'flotas', loadComponent: () => import('./features/inventory/flotas/flotas').then(m => m.Flotas) },
+          { path: 'notificaciones', loadComponent: () => import('./features/inventory/usuarios/usuarios-notificaciones').then(m => m.UsuariosNotificaciones) }
         ]
       },
       {

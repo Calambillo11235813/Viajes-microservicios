@@ -1,11 +1,11 @@
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-  
+
   <!-- Sidebar de Rutas -->
   <div class="bg-white rounded-lg shadow p-4 md:col-span-1">
     <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Seleccionar Ruta</h3>
     <div *ngIf="isLoadingRutas" class="text-sm text-gray-500">Cargando rutas...</div>
     <ul class="space-y-2">
-      <li *ngFor="let ruta of rutas" 
+      <li *ngFor="let ruta of rutas"
           (click)="seleccionarRuta(+ruta.id)"
           class="cursor-pointer px-3 py-2 rounded text-sm transition-colors"
           [ngClass]="{'bg-blue-100 text-blue-800 font-semibold border-l-4 border-blue-600': rutaSeleccionadaId === +ruta.id, 'hover:bg-gray-100 text-gray-700': rutaSeleccionadaId !== +ruta.id}">
@@ -21,18 +21,20 @@
   <div class="bg-white rounded-lg shadow p-6 md:col-span-3">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-semibold text-gray-800">Programación de Viajes</h2>
-      <button *ngIf="authService.hasRole('ADMINISTRADOR')" (click)="abrirModal()" [disabled]="!rutaSeleccionadaId" 
+      <button *ngIf="authService.hasRole('ADMINISTRADOR')" (click)="abrirModal()" [disabled]="!rutaSeleccionadaId"
         class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded shadow text-sm font-medium">
         + Programar Salida
       </button>
     </div>
 
-    <!-- Loading Viajes -->
+    <div *ngIf="ultimoResultadoNotificacion()" class="mb-4 p-3 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
+      {{ ultimoResultadoNotificacion() }}
+    </div>
+
     <div *ngIf="isLoadingViajes()" class="text-center py-10">
       <p class="text-gray-500">Cargando viajes programados...</p>
     </div>
 
-    <!-- Table -->
     <div *ngIf="!isLoadingViajes()" class="overflow-x-auto">
       <table class="min-w-full bg-white">
         <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
@@ -42,6 +44,7 @@
             <th class="py-3 px-4 text-left border-b">Llegada Aprox.</th>
             <th class="py-3 px-4 text-left border-b">Bus Asignado</th>
             <th class="py-3 px-4 text-left border-b">Estado</th>
+            <th class="py-3 px-4 text-left border-b" *ngIf="authService.hasRole('ADMINISTRADOR')">Acciones</th>
           </tr>
         </thead>
         <tbody class="text-sm text-gray-700">
@@ -51,7 +54,7 @@
             <td class="py-3 px-4 text-gray-500">{{ viaje.fechaHoraLlegada | date:'short' }}</td>
             <td class="py-3 px-4">Bus #{{ viaje.idBus }}</td>
             <td class="py-3 px-4">
-              <span class="px-2 py-1 text-xs font-semibold rounded-full" 
+              <span class="px-2 py-1 text-xs font-semibold rounded-full"
                 [ngClass]="{
                   'bg-green-100 text-green-800': viaje.estadoViaje === 'PROGRAMADO',
                   'bg-yellow-100 text-yellow-800': viaje.estadoViaje === 'EN_CURSO',
@@ -60,17 +63,32 @@
                 {{ viaje.estadoViaje }}
               </span>
             </td>
+            <td class="py-3 px-4" *ngIf="authService.hasRole('ADMINISTRADOR')">
+              <div class="flex flex-wrap gap-2">
+                <button (click)="abrirAlertaModal(viaje)" [disabled]="viaje.estadoViaje === 'CANCELADO'"
+                  class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 disabled:opacity-40">
+                  Alerta
+                </button>
+                <button (click)="abrirEditarModal(viaje)" [disabled]="viaje.estadoViaje === 'CANCELADO'"
+                  class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded hover:bg-yellow-200 disabled:opacity-40">
+                  Editar
+                </button>
+                <button (click)="cancelarViaje(viaje)" [disabled]="viaje.estadoViaje === 'CANCELADO'"
+                  class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-40">
+                  Cancelar
+                </button>
+              </div>
+            </td>
           </tr>
           <tr *ngIf="viajes().length === 0 && rutaSeleccionadaId">
-            <td colspan="5" class="py-8 text-center text-gray-500">No hay salidas programadas para esta ruta.</td>
+            <td colspan="6" class="py-8 text-center text-gray-500">No hay salidas programadas para esta ruta.</td>
           </tr>
           <tr *ngIf="!rutaSeleccionadaId">
-            <td colspan="5" class="py-8 text-center text-gray-500">Selecciona una ruta del panel izquierdo.</td>
+            <td colspan="6" class="py-8 text-center text-gray-500">Selecciona una ruta del panel izquierdo.</td>
           </tr>
         </tbody>
       </table>
 
-      <!-- Paginación -->
       <div *ngIf="totalElementos() > 0" class="flex items-center justify-between mt-4 px-2">
         <span class="text-sm text-gray-500">
           Página {{ paginaActual() + 1 }} de {{ totalPaginas() }} ({{ totalElementos() }} registros)
@@ -88,10 +106,9 @@
       </div>
     </div>
   </div>
-
 </div>
 
-<!-- Modal Form -->
+<!-- Modal Programar -->
 <div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
   <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
     <h3 class="text-lg font-bold mb-4">Programar Nueva Salida</h3>
@@ -105,7 +122,6 @@
       <div>
         <label class="block text-sm font-medium text-gray-700">Bus Asignado (ID)</label>
         <input type="number" formControlName="idBus" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
-        <p class="text-xs text-gray-500 mt-1">Se requiere un ID de Bus válido en sistema.</p>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700">Fecha y Hora de Salida</label>
@@ -114,6 +130,55 @@
       <div class="flex justify-end space-x-3 mt-6">
         <button type="button" (click)="cerrarModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancelar</button>
         <button type="submit" [disabled]="viajeForm.invalid" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">Confirmar Viaje</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Alerta Emergencia -->
+<div *ngIf="showAlertaModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+    <h3 class="text-lg font-bold mb-2 text-red-700">Enviar alerta de emergencia</h3>
+    <p class="text-sm text-gray-500 mb-4" *ngIf="viajeSeleccionado">
+      Viaje #{{ viajeSeleccionado.idViaje }} — {{ viajeSeleccionado.ciudadOrigen }} → {{ viajeSeleccionado.ciudadDestino }}
+    </p>
+    <form [formGroup]="alertaForm" (ngSubmit)="enviarAlertaEmergencia()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Título</label>
+        <input type="text" formControlName="titulo" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Mensaje</label>
+        <textarea formControlName="mensaje" rows="4" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"></textarea>
+      </div>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button type="button" (click)="cerrarAlertaModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded">Cancelar</button>
+        <button type="submit" [disabled]="alertaForm.invalid" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50">Enviar alerta</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar Horario -->
+<div *ngIf="showEditarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+    <h3 class="text-lg font-bold mb-4">Modificar horario de viaje</h3>
+    <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2" *ngIf="viajeSeleccionado">
+      Horario actual: {{ viajeSeleccionado.fechaHoraSalida | date:'dd/MM/yyyy HH:mm' }} · Bus #{{ viajeSeleccionado.idBus }}
+    </p>
+    <form [formGroup]="editarForm" (ngSubmit)="actualizarHorarioViaje()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Nueva fecha y hora</label>
+        <input type="datetime-local" formControlName="fechaHoraSalida" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Bus (ID)</label>
+        <input type="number" formControlName="idBus" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <p class="text-xs text-gray-500">Al guardar, se notificará automáticamente a los pasajeros con reserva activa.</p>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button type="button" (click)="cerrarEditarModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded">Cancelar</button>
+        <button type="submit" [disabled]="editarForm.invalid" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50">Guardar cambios</button>
       </div>
     </form>
   </div>

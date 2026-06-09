@@ -18,8 +18,8 @@ import { LOGIN_MUTATION } from '@/graphql/mutations/auth';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginScreen({ navigation }: any) {
-  const [email, setEmail] = useState('test@test.com'); // Datos pre-cargados para desarrollo
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const { setSession } = useAuth();

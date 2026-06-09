@@ -1,0 +1,126 @@
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <!-- Sidebar de Rutas -->
+  <div class="bg-white rounded-lg shadow p-4 md:col-span-1">
+    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Seleccionar Ruta</h3>
+    <div *ngIf="isLoadingRutas()" class="text-sm text-gray-500">Cargando rutas...</div>
+    <ul class="space-y-2">
+      <li *ngFor="let ruta of rutas"
+          (click)="seleccionarRuta(+ruta.id)"
+          class="cursor-pointer px-3 py-2 rounded text-sm transition-colors"
+          [ngClass]="{
+            'bg-blue-100 text-blue-800 font-semibold border-l-4 border-blue-600': rutaSeleccionadaId === +ruta.id,
+            'hover:bg-gray-100 text-gray-700': rutaSeleccionadaId !== +ruta.id
+          }">
+        {{ ruta.ciudadOrigen }} - {{ ruta.ciudadDestino }}
+      </li>
+      <li *ngIf="rutas.length === 0 && !isLoadingRutas()" class="text-xs text-red-500">
+        No hay rutas creadas. Ve al panel de Rutas primero.
+      </li>
+    </ul>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="bg-white rounded-lg shadow p-6 md:col-span-3">
+    <h2 class="text-xl font-semibold text-gray-800 mb-2">Recordatorio de CI por viaje</h2>
+    <p class="text-sm text-gray-500 mb-6">
+      Selecciona un viaje programado y envía el recordatorio de documentación a todos los pasajeros confirmados con un solo envío.
+    </p>
+
+    <div *ngIf="ultimoResultado()"
+      class="mb-4 p-3 text-sm rounded border"
+      [ngClass]="ultimoResultadoEsError()
+        ? 'bg-amber-50 border-amber-200 text-amber-800'
+        : 'bg-green-50 border-green-200 text-green-800'">
+      {{ ultimoResultado() }}
+    </div>
+
+    <div *ngIf="isLoadingViajes()" class="text-gray-500 text-sm mb-4">Cargando viajes programados...</div>
+
+    <div *ngIf="!isLoadingViajes()" class="mb-6 overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-4 text-left border-b">Seleccionar</th>
+            <th class="py-3 px-4 text-left border-b">ID</th>
+            <th class="py-3 px-4 text-left border-b">Salida</th>
+            <th class="py-3 px-4 text-left border-b">Bus</th>
+            <th class="py-3 px-4 text-left border-b">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm text-gray-700">
+          <tr *ngFor="let viaje of viajes()"
+              class="border-b hover:bg-gray-50"
+              [ngClass]="{
+                'bg-blue-50': esViajeSeleccionado(viaje),
+                'opacity-50': viaje.estadoViaje === 'CANCELADO'
+              }">
+            <td class="py-3 px-4">
+              <input type="radio"
+                name="viajeSeleccionado"
+                [checked]="esViajeSeleccionado(viaje)"
+                [disabled]="viaje.estadoViaje === 'CANCELADO'"
+                (change)="seleccionarViaje(viaje)"
+                class="h-4 w-4 text-blue-600">
+            </td>
+            <td class="py-3 px-4">#{{ viaje.idViaje }}</td>
+            <td class="py-3 px-4 font-medium text-blue-800">{{ viaje.fechaHoraSalida | date:'short' }}</td>
+            <td class="py-3 px-4">Bus #{{ viaje.idBus }}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-green-100 text-green-800': viaje.estadoViaje === 'PROGRAMADO',
+                  'bg-yellow-100 text-yellow-800': viaje.estadoViaje === 'EN_CURSO',
+                  'bg-red-100 text-red-800': viaje.estadoViaje === 'CANCELADO'
+                }">
+                {{ viaje.estadoViaje }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="viajes().length === 0">
+            <td colspan="5" class="py-6 px-4 text-center text-gray-500">
+              No hay viajes programados para esta ruta.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="totalPaginas() > 1" class="flex items-center justify-between mt-4 text-sm text-gray-600">
+        <button type="button"
+          (click)="paginaAnterior()"
+          [disabled]="paginaActual() === 0"
+          class="px-3 py-1 border rounded disabled:opacity-40">
+          Anterior
+        </button>
+        <span>Página {{ paginaActual() + 1 }} de {{ totalPaginas() }}</span>
+        <button type="button"
+          (click)="paginaSiguiente()"
+          [disabled]="!tieneSiguiente()"
+          class="px-3 py-1 border rounded disabled:opacity-40">
+          Siguiente
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="viajeSeleccionado()" class="mb-4 p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-900">
+      Viaje seleccionado:
+      <strong>{{ viajeSeleccionado()!.ciudadOrigen }} → {{ viajeSeleccionado()!.ciudadDestino }}</strong>
+      (#{{ viajeSeleccionado()!.idViaje }}, salida {{ viajeSeleccionado()!.fechaHoraSalida | date:'short' }})
+    </div>
+
+    <form [formGroup]="docForm" (ngSubmit)="enviarDocumentacionPendiente()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje</label>
+        <textarea formControlName="mensaje" rows="4" class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
+      </div>
+      <button type="submit"
+        [disabled]="!viajeSeleccionado() || viajeSeleccionado()?.estadoViaje === 'CANCELADO' || docForm.invalid || isEnviando() || !authService.hasRole('ADMINISTRADOR')"
+        class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded text-sm font-medium">
+        <span *ngIf="!isEnviando()">Enviar recordatorio de CI a pasajeros confirmados</span>
+        <span *ngIf="isEnviando()">Enviando...</span>
+      </button>
+      <p *ngIf="!authService.hasRole('ADMINISTRADOR')" class="text-xs text-gray-500">
+        Solo un administrador puede enviar recordatorios.
+      </p>
+    </form>
+  </div>
+</div>

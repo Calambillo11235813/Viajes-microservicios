@@ -1,8 +1,26 @@
 import React from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useMyTrips, ViajeConsolidado } from '@/hooks/useMyTrips';
 import { COLORS, TYPOGRAPHY, globalStyles } from '@/theme/theme';
 import { styles } from './styles/MyTripsScreen.styles';
+
+function formatearFecha(iso: string): string {
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return iso;
+  return fecha.toLocaleDateString('es-BO', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function formatearHora(iso: string): string {
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return '--:--';
+  return fecha.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
+}
 
 export default function MyTripsScreen() {
   const { viajes, loading, error, refetch, cancelarReserva, cancelLoading } = useMyTrips();
@@ -31,10 +49,30 @@ export default function MyTripsScreen() {
         </View>
         
         <View style={styles.cardBody}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Fecha Salida:</Text>
-            <Text style={styles.value}>{new Date(item.fechaHoraSalida).toLocaleDateString()}</Text>
+          <View style={styles.scheduleContainer}>
+            <View style={styles.scheduleItem}>
+              <Ionicons name="airplane-outline" size={16} color={COLORS.secondary} />
+              <View style={styles.scheduleTextBlock}>
+                <Text style={styles.scheduleLabel}>Salida</Text>
+                <Text style={styles.scheduleTime}>{formatearHora(item.fechaHoraSalida)}</Text>
+                <Text style={styles.scheduleDate}>{formatearFecha(item.fechaHoraSalida)}</Text>
+              </View>
+            </View>
+
+            <View style={styles.scheduleDivider}>
+              <Ionicons name="arrow-forward" size={18} color={COLORS.placeholder} />
+            </View>
+
+            <View style={styles.scheduleItem}>
+              <Ionicons name="flag-outline" size={16} color={COLORS.accent} />
+              <View style={styles.scheduleTextBlock}>
+                <Text style={styles.scheduleLabel}>Llegada</Text>
+                <Text style={styles.scheduleTime}>{formatearHora(item.fechaHoraLlegada)}</Text>
+                <Text style={styles.scheduleDate}>{formatearFecha(item.fechaHoraLlegada)}</Text>
+              </View>
+            </View>
           </View>
+
           <View style={styles.row}>
             <Text style={styles.label}>Reserva creada:</Text>
             <Text style={styles.value}>{new Date(item.fechaCreacion).toLocaleDateString()}</Text>

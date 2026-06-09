@@ -5,6 +5,7 @@ import { apolloClient } from '@/graphql/client';
 import AppNavigator from '@/navigation/AppNavigator';
 import { AuthProvider } from '@/context/AuthContext';
 import { View } from 'react-native';
+import '@/notifications/setupNotifications';
 
 export default function App() {
   return (

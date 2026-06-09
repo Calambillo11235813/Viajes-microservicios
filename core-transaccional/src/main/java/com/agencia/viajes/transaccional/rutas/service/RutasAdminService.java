@@ -8,8 +8,11 @@ import com.agencia.viajes.transaccional.viajes.dto.PaginaViajesResponse;
 import com.agencia.viajes.transaccional.viajes.dto.ViajeDisponibleResponse;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
 import com.agencia.viajes.transaccional.viajes.repository.ViajeProgramadoRepository;
+import com.agencia.viajes.transaccional.notificaciones.service.NotificacionService;
 import com.agencia.viajes.transaccional.viajes.service.TarifaViajeService;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
@@ -20,19 +23,22 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Servicio administrativo para la gestión de rutas y programación de viajes (CU-09).
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RutasAdminService {
+
+    private static final DateTimeFormatter HORARIO_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final RutaDestinoRepository rutaDestinoRepository;
     private final ViajeProgramadoRepository viajeProgramadoRepository;
     private final FlotaRepository flotaRepository;
     private final TarifaViajeService tarifaViajeService;
+    private final NotificacionService notificacionService;
 
     // --- Gestión de Rutas ---
 
@@ -135,42 +141,117 @@ public class RutasAdminService {
     public ViajeDisponibleResponse actualizarViajeProgramado(Integer idViaje, Integer idBus, String fechaHoraSalidaStr) {
         ViajeProgramado viaje = viajeProgramadoRepository.findById(idViaje)
                 .orElseThrow(() -> new IllegalArgumentException("Viaje no encontrado: " + idViaje));
-        
+
+        LocalDateTime fechaAnterior = viaje.getFechaHoraSalida();
+        Integer busAnterior = viaje.getFlota().getIdBus();
+        String origen = viaje.getRutaDestino().getCiudadOrigen();
+        String destino = viaje.getRutaDestino().getCiudadDestino();
+
+        LocalDateTime salidaNueva = fechaAnterior;
+        if (fechaHoraSalidaStr != null) {
+            salidaNueva = LocalDateTime.parse(fechaHoraSalidaStr);
+        }
+
+        Integer busNuevo = busAnterior;
         Flota bus = viaje.getFlota();
         if (idBus != null) {
+            busNuevo = idBus;
             bus = flotaRepository.findById(idBus)
                     .orElseThrow(() -> new IllegalArgumentException("Bus no encontrado: " + idBus));
             viaje.setFlota(bus);
         }
 
-        if (fechaHoraSalidaStr != null) {
-            LocalDateTime salida = LocalDateTime.parse(fechaHoraSalidaStr);
+        boolean cambioHorario = !salidaNueva.equals(fechaAnterior);
+        boolean cambioBus = !busNuevo.equals(busAnterior);
+
+        if (!cambioHorario && !cambioBus) {
+            log.info("[Viajes Admin] Sin cambios en viaje #{}", idViaje);
+            return mapearRespuesta(viaje);
+        }
+
+        if (cambioHorario) {
             long minutosDuracion = viaje.getRutaDestino().getDuracionEstimadaHoras().multiply(new BigDecimal("60")).longValue();
-            LocalDateTime llegada = salida.plusMinutes(minutosDuracion);
-            viaje.setFechaHoraSalida(salida);
+            LocalDateTime llegada = salidaNueva.plusMinutes(minutosDuracion);
+            viaje.setFechaHoraSalida(salidaNueva);
             viaje.setFechaHoraLlegada(llegada);
         }
 
         // Validación estricta de solapamiento excluyendo el viaje actual
         validarSolapamiento(viaje.getFlota().getIdBus(), viaje.getFechaHoraSalida(), viaje.getFechaHoraLlegada(), idViaje);
 
-        return mapearRespuesta(viajeProgramadoRepository.save(viaje));
+        ViajeDisponibleResponse respuesta = mapearRespuesta(viajeProgramadoRepository.save(viaje));
+
+        if (fechaHoraSalidaStr != null && cambioHorario) {
+            String mensaje = String.format(
+                    "El viaje %s → %s cambió su hora de salida de %s a %s.",
+                    origen,
+                    destino,
+                    fechaAnterior,
+                    viaje.getFechaHoraSalida());
+            String datosExtra = String.format(
+                    "{\"idViaje\":%d,\"fechaAnterior\":\"%s\",\"fechaNueva\":\"%s\"}",
+                    idViaje,
+                    fechaAnterior,
+                    viaje.getFechaHoraSalida());
+            notificacionService.notificarAutomaticaPorViaje(
+                    idViaje,
+                    "CAMBIO_HORARIO",
+                    "Cambio de horario de viaje",
+                    mensaje,
+                    datosExtra);
+        }
+
+        return respuesta;
     }
 
     @Transactional
     public boolean cancelarViajeProgramado(Integer idViaje) {
         ViajeProgramado viaje = viajeProgramadoRepository.findById(idViaje)
                 .orElseThrow(() -> new IllegalArgumentException("Viaje no encontrado: " + idViaje));
+        String origen = viaje.getRutaDestino().getCiudadOrigen();
+        String destino = viaje.getRutaDestino().getCiudadDestino();
         viaje.setEstadoViaje("CANCELADO");
         viajeProgramadoRepository.save(viaje);
+
+        String mensaje = String.format(
+                "El viaje %s → %s programado para %s ha sido cancelado.",
+                origen,
+                destino,
+                viaje.getFechaHoraSalida());
+        String datosExtra = String.format("{\"idViaje\":%d,\"estadoViaje\":\"CANCELADO\"}", idViaje);
+        notificacionService.notificarAutomaticaPorViaje(
+                idViaje,
+                "CANCELACION",
+                "Viaje cancelado",
+                mensaje,
+                datosExtra);
+
         return true;
     }
 
     private void validarSolapamiento(Integer idBus, LocalDateTime inicio, LocalDateTime fin, Integer idViajeExcluido) {
-        long overlaps = viajeProgramadoRepository.countSolapamientos(idBus, inicio, fin, idViajeExcluido);
-        if (overlaps > 0) {
-            throw new IllegalArgumentException("El bus seleccionado ya tiene un viaje programado que se solapa con este horario.");
+        List<ViajeProgramado> conflictos = idViajeExcluido == null
+                ? viajeProgramadoRepository.buscarSolapamientos(idBus, inicio, fin)
+                : viajeProgramadoRepository.buscarSolapamientosExcluyendo(idBus, inicio, fin, idViajeExcluido);
+
+        if (conflictos.isEmpty()) {
+            return;
         }
+
+        ViajeProgramado conflicto = conflictos.get(0);
+        String mensaje = String.format(
+                "El bus %d ya tiene el viaje #%d (%s → %s, %s a %s) que se solapa con el horario solicitado (%s a %s). "
+                        + "Elija otro bus u otro horario.",
+                idBus,
+                conflicto.getId(),
+                conflicto.getRutaDestino().getCiudadOrigen(),
+                conflicto.getRutaDestino().getCiudadDestino(),
+                conflicto.getFechaHoraSalida().format(HORARIO_FMT),
+                conflicto.getFechaHoraLlegada().format(HORARIO_FMT),
+                inicio.format(HORARIO_FMT),
+                fin.format(HORARIO_FMT));
+        log.warn("[Viajes Admin] Solapamiento detectado: {}", mensaje);
+        throw new IllegalArgumentException(mensaje);
     }
 
     private ViajeDisponibleResponse mapearRespuesta(ViajeProgramado viaje) {

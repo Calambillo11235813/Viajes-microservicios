@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import { CONSULTAR_HISTORIAL_VIAJES, CANCELAR_RESERVA } from '@/graphql/queries/historial';
 import { useAuth } from '@/context/AuthContext';
 import { Alert } from 'react-native';
+import { appLog } from '@/utils/logger';
 
 interface ConsultarHistorialViajesData {
   consultarHistorialViajes: {
@@ -19,6 +20,7 @@ export interface ViajeRaw {
   ciudadOrigen: string;
   ciudadDestino: string;
   fechaHoraSalida: string;
+  fechaHoraLlegada: string;
   fechaCreacion: string;
   estadoReserva: string;
   montoTotalPagado: number;
@@ -31,6 +33,7 @@ export interface ViajeConsolidado {
   ciudadOrigen: string;
   ciudadDestino: string;
   fechaHoraSalida: string;
+  fechaHoraLlegada: string;
   fechaCreacion: string;
   estadoReserva: string;
   montoTotalPagado: number;
@@ -56,21 +59,21 @@ export const useMyTrips = () => {
   const viajesRaw: ViajeRaw[] = data?.consultarHistorialViajes?.contenido ?? [];
 
   useEffect(() => {
-    console.log('[Historial] Usuario:', user);
-    console.log('[Historial] idUsuario:', idUsuario, '| tieneToken:', Boolean(token));
-    console.log('[Historial] skip query:', !idUsuario);
+    appLog.info('Historial', 'Usuario:', user);
+    appLog.info('Historial', 'idUsuario:', idUsuario, '| tieneToken:', Boolean(token));
+    appLog.info('Historial', 'skip query:', !idUsuario);
   }, [user, idUsuario, token]);
 
   useEffect(() => {
     if (loading) {
-      console.log('[Historial] Cargando consultarHistorialViajes...');
+      appLog.info('Historial', 'Cargando consultarHistorialViajes...');
     }
   }, [loading]);
 
   useEffect(() => {
     if (error) {
-      console.error('[Historial] Error GraphQL:', error.message);
-      console.error('[Historial] Detalle completo:', JSON.stringify(error, null, 2));
+      appLog.error('Historial', 'Error GraphQL:', error.message);
+      appLog.error('Historial', 'Detalle completo:', JSON.stringify(error, null, 2));
     }
   }, [error]);
 
@@ -78,7 +81,7 @@ export const useMyTrips = () => {
     if (!data?.consultarHistorialViajes) return;
 
     const pagina = data.consultarHistorialViajes;
-    console.log('[Historial] Respuesta OK:', {
+    appLog.info('Historial', 'Respuesta OK:', {
       totalRegistros: pagina.contenido.length,
       paginaActual: pagina.paginaActual,
       totalPaginas: pagina.totalPaginas,
@@ -98,6 +101,7 @@ export const useMyTrips = () => {
           ciudadOrigen: v.ciudadOrigen,
           ciudadDestino: v.ciudadDestino,
           fechaHoraSalida: v.fechaHoraSalida,
+          fechaHoraLlegada: v.fechaHoraLlegada,
           fechaCreacion: v.fechaCreacion,
           estadoReserva: v.estadoReserva,
           montoTotalPagado: v.montoTotalPagado,

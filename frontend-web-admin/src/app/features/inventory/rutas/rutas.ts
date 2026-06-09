@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { GraphqlService } from '../../../core/services/graphql.service';
 import { RutaDestino } from '../../../core/models/business.models';
 import { AuthService } from '../../../core/services/auth';
@@ -11,15 +12,16 @@ import { AuthService } from '../../../core/services/auth';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './rutas.html'
 })
-export class Rutas implements OnInit {
+export class Rutas {
   private fb = inject(FormBuilder);
   private graphqlService = inject(GraphqlService);
   public authService = inject(AuthService);
 
-  rutas: RutaDestino[] = [];
-  isLoading = false;
-  showModal = false;
-  
+  rutas = signal<RutaDestino[]>([]);
+  isLoading = signal(true);
+  errorCarga = signal<string | null>(null);
+  showModal = signal(false);
+
   rutaForm: FormGroup = this.fb.group({
     ciudadOrigen: ['', Validators.required],
     ciudadDestino: ['', Validators.required],
@@ -28,31 +30,35 @@ export class Rutas implements OnInit {
     categoriaTuristica: ['Normal']
   });
 
-  ngOnInit(): void {
-    this.cargarRutas();
+  constructor() {
+    afterNextRender(() => this.cargarRutas());
   }
 
   cargarRutas() {
-    this.isLoading = true;
-    this.graphqlService.listarRutas(0, 100).subscribe({
+    this.isLoading.set(true);
+    this.errorCarga.set(null);
+
+    this.graphqlService.listarRutas(0, 100).pipe(
+      finalize(() => this.isLoading.set(false))
+    ).subscribe({
       next: (data) => {
-        this.rutas = data.contenido;
-        this.isLoading = false;
+        this.rutas.set(data?.contenido ?? []);
       },
       error: (err) => {
         console.error('Error cargando rutas', err);
-        this.isLoading = false;
+        this.rutas.set([]);
+        this.errorCarga.set(err.message || 'No se pudieron cargar las rutas.');
       }
     });
   }
 
   abrirModal() {
     this.rutaForm.reset({ duracionEstimadaHoras: 1, precioBase: 50, categoriaTuristica: 'Normal' });
-    this.showModal = true;
+    this.showModal.set(true);
   }
 
   cerrarModal() {
-    this.showModal = false;
+    this.showModal.set(false);
   }
 
   guardarRuta() {
@@ -60,18 +66,18 @@ export class Rutas implements OnInit {
 
     this.graphqlService.crearRuta(this.rutaForm.value).subscribe({
       next: (nuevaRuta) => {
-        this.rutas.push(nuevaRuta);
+        this.rutas.update(lista => [...lista, nuevaRuta]);
         this.cerrarModal();
       },
       error: (err) => alert('Error al guardar la ruta: ' + err.message)
     });
   }
 
-  eliminar(id: number) {
+  eliminar(id: number | string) {
     if (confirm('¿Estás seguro de eliminar esta ruta?')) {
-      this.graphqlService.eliminarRuta(id).subscribe({
+      this.graphqlService.eliminarRuta(Number(id)).subscribe({
         next: () => {
-          this.rutas = this.rutas.filter(r => r.id !== id);
+          this.rutas.update(lista => lista.filter(r => String(r.id) !== String(id)));
         },
         error: (err) => alert('Error al eliminar: ' + err.message)
       });

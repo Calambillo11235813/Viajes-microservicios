@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map, throwError, catchError } from 'rxjs';
+import { Observable, map, throwError, catchError, tap } from 'rxjs';
 import { RutaDestino, ViajeDisponible, ReporteVentas, Flota, PaginaViajes, AsientoEstado, ReservaProvisional, PagoConfirmado, PaginaHistorial, DestinoRecomendado, ReelTuristico } from '../models/business.models';
 import { AuthService } from './auth';
 import { Router } from '@angular/router';
+import { appLog } from '../utils/logger';
 
 @Injectable({
   providedIn: 'root'
@@ -479,5 +480,124 @@ export class GraphqlService {
       }
     `;
     return this.executeQuery<any>(query, { id: clusterId }).pipe(map(data => data.rutasPorCluster));
+  }
+
+  // --- NOTIFICACIONES ---
+  enviarNotificacionPorViaje(input: {
+    idViaje: number;
+    tipo: string;
+    titulo: string;
+    mensaje: string;
+    datosExtraJson?: string;
+  }): Observable<any[]> {
+    const query = `
+      mutation EnviarNotifViaje($input: NotificacionViajeInput!) {
+        enviarNotificacionPorViaje(input: $input) {
+          id
+          idUsuario
+          tipo
+          titulo
+          fechaCreacion
+        }
+      }
+    `;
+    return this.executeQuery<any>(query, { input }).pipe(
+      tap(() => appLog.info('Notif Admin', 'GraphQL enviarNotificacionPorViaje →', input)),
+      map(data => data.enviarNotificacionPorViaje),
+      tap((notificaciones) => appLog.info(
+        'Notif Admin',
+        'GraphQL enviarNotificacionPorViaje OK:',
+        notificaciones?.length ?? 0,
+        'destinatario(s)',
+        notificaciones
+      )),
+      catchError((err) => {
+        appLog.error('Notif Admin', 'GraphQL enviarNotificacionPorViaje falló:', err.message, input);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  enviarNotificacionPorUsuario(input: {
+    idsUsuario: number[];
+    tipo: string;
+    titulo: string;
+    mensaje: string;
+    datosExtraJson?: string;
+  }): Observable<any[]> {
+    const query = `
+      mutation EnviarNotifUsuario($input: NotificacionUsuarioInput!) {
+        enviarNotificacionPorUsuario(input: $input) {
+          id
+          idUsuario
+          tipo
+          titulo
+          fechaCreacion
+        }
+      }
+    `;
+    return this.executeQuery<any>(query, { input }).pipe(
+      tap(() => appLog.info('Notif Admin', 'GraphQL enviarNotificacionPorUsuario →', input)),
+      map(data => data.enviarNotificacionPorUsuario),
+      tap((notificaciones) => appLog.info(
+        'Notif Admin',
+        'GraphQL enviarNotificacionPorUsuario OK:',
+        notificaciones?.length ?? 0,
+        'destinatario(s)',
+        notificaciones
+      )),
+      catchError((err) => {
+        appLog.error('Notif Admin', 'GraphQL enviarNotificacionPorUsuario falló:', err.message, input);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  actualizarViajeProgramado(idViaje: number, idBus?: number, fechaHoraSalida?: string): Observable<ViajeDisponible> {
+    const query = `
+      mutation ActualizarViaje($idViaje: Int!, $idBus: Int, $fecha: String) {
+        actualizarViajeProgramado(idViaje: $idViaje, idBus: $idBus, fechaHoraSalida: $fecha) {
+          idViaje
+          fechaHoraSalida
+          estadoViaje
+        }
+      }
+    `;
+    return this.executeQuery<any>(query, { idViaje, idBus, fecha: fechaHoraSalida }).pipe(
+      tap(() => appLog.info('Notif Admin', 'GraphQL actualizarViajeProgramado (CAMBIO_HORARIO si cambia fecha):', {
+        idViaje, idBus, fechaHoraSalida
+      })),
+      map(data => data.actualizarViajeProgramado),
+      tap((viaje) => appLog.info('Notif Admin', 'GraphQL actualizarViajeProgramado OK:', viaje))
+    );
+  }
+
+  cancelarViajeProgramado(idViaje: number): Observable<boolean> {
+    const query = `
+      mutation CancelarViaje($idViaje: Int!) {
+        cancelarViajeProgramado(idViaje: $idViaje)
+      }
+    `;
+    return this.executeQuery<any>(query, { idViaje }).pipe(
+      tap(() => appLog.info('Notif Admin', 'GraphQL cancelarViajeProgramado (CANCELACION automática):', { idViaje })),
+      map(data => data.cancelarViajeProgramado),
+      tap((ok) => appLog.info('Notif Admin', 'GraphQL cancelarViajeProgramado OK:', ok))
+    );
+  }
+
+  listarUsuarios(): Observable<import('../models/business.models').UsuarioPerfil[]> {
+    const query = `
+      query {
+        listarUsuarios {
+          idUsuario
+          ciPasaporte
+          nombreCompleto
+          email
+          telefono
+          idRol
+        }
+      }
+    `;
+    return this.executeQuery<any>(query).pipe(map(data => data.listarUsuarios));
   }
 }

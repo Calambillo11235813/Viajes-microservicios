@@ -1,51 +1,47 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   Switch,
-  Alert,
-  Platform,
+  ActivityIndicator,
+  RefreshControl,
+  DeviceEventEmitter,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Notifications from 'expo-notifications';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { COLORS, globalStyles } from '@/theme/theme';
 import { styles } from './styles/NotificacionesScreen.styles';
+import { useAuth } from '@/context/AuthContext';
+import { usePushNotifications } from '@/context/PushNotificationsContext';
+import { OBTENER_NOTIFICACIONES_USUARIO } from '@/graphql/queries/notificaciones';
+import {
+  MARCAR_NOTIFICACION_LEIDA,
+  MARCAR_TODAS_NOTIFICACIONES_LEIDAS,
+} from '@/graphql/mutations/notificaciones';
+import { appLog } from '@/utils/logger';
+import { NOTIFICACIONES_REFRESH_EVENT } from '@/utils/notificationsEvents';
 
-/* ─────────────────── Configuración Global de Notificaciones ─────────────────── */
+type TipoVisual = 'exito' | 'alerta' | 'info';
 
-/**
- * Handler global: define cómo se comportan las notificaciones cuando la app
- * está en primer plano. Sin esto, las alertas nativas no aparecerían
- * mientras el usuario tiene la app abierta.
- */
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,   // Mostrar banner visual
-    shouldPlaySound: true,   // Reproducir sonido
-    shouldSetBadge: true,    // Actualizar badge del ícono de la app
-    shouldShowBanner: true,  // Banner en la barra superior
-    shouldShowList: true,    // Aparecer en el centro de notificaciones del OS
-  }),
-});
-
-/* ─────────────────── Tipos ─────────────────── */
-
-type TipoNotificacion = 'exito' | 'alerta' | 'info';
-
-interface Notificacion {
+interface NotificacionItem {
   id: string;
-  tipo: TipoNotificacion;
+  tipo: string;
   titulo: string;
   mensaje: string;
-  tiempo: string;
+  fechaCreacion: string;
   leido: boolean;
 }
 
-/* ─────────────────── Helpers ─────────────────── */
+interface ObtenerNotificacionesData {
+  obtenerNotificacionesUsuario: {
+    contenido: NotificacionItem[];
+    totalNoLeidas: number;
+  };
+}
 
-const TIPO_CONFIG: Record<TipoNotificacion, {
+const TIPO_CONFIG: Record<TipoVisual, {
   color: string;
   bgColor: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -67,142 +63,129 @@ const TIPO_CONFIG: Record<TipoNotificacion, {
   },
 };
 
-/** Datos iniciales de ejemplo (mock) */
-const MOCK_NOTIFICACIONES: Notificacion[] = [
-  {
-    id: '1',
-    tipo: 'exito',
-    titulo: 'Compra confirmada',
-    mensaje: 'Tu reserva para el viaje La Paz → Cochabamba ha sido confirmada exitosamente. ¡Buen viaje!',
-    tiempo: 'Hace 5 min',
-    leido: false,
-  },
-  {
-    id: '2',
-    tipo: 'alerta',
-    titulo: 'Bus con retraso',
-    mensaje: 'El bus de las 14:30 con destino a Sucre presenta un retraso de 25 minutos. Disculpe las molestias.',
-    tiempo: 'Hace 20 min',
-    leido: false,
-  },
-  {
-    id: '3',
-    tipo: 'info',
-    titulo: 'Nuevo destino disponible',
-    mensaje: 'Ahora puedes reservar viajes directos a Uyuni desde La Paz. ¡Explora el salar!',
-    tiempo: 'Hace 1 hora',
-    leido: false,
-  },
-];
+function mapTipoVisual(tipo: string): TipoVisual {
+  switch (tipo) {
+    case 'EMERGENCIA_RUTA':
+    case 'CANCELACION':
+    case 'RETRASO':
+      return 'alerta';
+    case 'DOCUMENTACION_FALTANTE':
+    case 'CAMBIO_HORARIO':
+      return 'info';
+    default:
+      return 'exito';
+  }
+}
 
-/* ─────────────────── Componente ─────────────────── */
+function formatearTiempo(fechaIso: string): string {
+  const fecha = new Date(fechaIso);
+  if (Number.isNaN(fecha.getTime())) return fechaIso;
 
-/**
- * Centro de Notificaciones (CU-13).
- *
- * Presenta un listado de alertas push simuladas con tipificación visual
- * (éxito / alerta / info), un interruptor general y acciones de lectura.
- */
+  const diffMs = Date.now() - fecha.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Ahora';
+  if (diffMin < 60) return `Hace ${diffMin} min`;
+  const diffHoras = Math.floor(diffMin / 60);
+  if (diffHoras < 24) return `Hace ${diffHoras} h`;
+  const diffDias = Math.floor(diffHoras / 24);
+  return `Hace ${diffDias} d`;
+}
+
 export default function NotificacionesScreen() {
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>(MOCK_NOTIFICACIONES);
-  const [pushActivo, setPushActivo] = useState(true);
-  const [permisosConcedidos, setPermisosConcedidos] = useState(false);
+  const { user } = useAuth();
+  const idUsuario = user?.idUsuario ? Number(user.idUsuario) : undefined;
+  const { pushActivo, togglePush, pushRemotoDisponible, avisoPush } = usePushNotifications();
 
-  /**
-   * Solicita permisos de notificación al sistema operativo.
-   * En Android 13+ se requiere permiso explícito; en iOS siempre.
-   */
-  const solicitarPermisos = useCallback(async () => {
-    if (Platform.OS === 'android') {
-      // Canal de Android obligatorio para Expo SDK 54+
-      await Notifications.setNotificationChannelAsync('viajes', {
-        name: 'Viajes',
-        importance: Notifications.AndroidImportance.HIGH,
-        sound: 'default',
-        vibrationPattern: [0, 250, 250, 250],
+  const pollListaMs = pushRemotoDisponible ? 15000 : 10000;
+
+  const { data, loading, refetch, networkStatus, error } = useQuery<ObtenerNotificacionesData>(
+    OBTENER_NOTIFICACIONES_USUARIO,
+    {
+      variables: { idUsuario, estado: 'TODAS', pagina: 0, tamanio: 50 },
+      skip: !idUsuario,
+      fetchPolicy: 'cache-and-network',
+      pollInterval: idUsuario ? pollListaMs : 0,
+      notifyOnNetworkStatusChange: true,
+    },
+  );
+
+  const refrescarLista = useCallback(() => {
+    if (!idUsuario) return;
+    refetch({ fetchPolicy: 'network-only' });
+  }, [idUsuario, refetch]);
+
+  useEffect(() => {
+    const subRefresh = DeviceEventEmitter.addListener(
+      NOTIFICACIONES_REFRESH_EVENT,
+      refrescarLista,
+    );
+
+    return () => subRefresh.remove();
+  }, [refrescarLista]);
+
+  useEffect(() => {
+    refrescarLista();
+  }, [idUsuario, refrescarLista]);
+
+  const [marcarLeidaMutation] = useMutation(MARCAR_NOTIFICACION_LEIDA);
+  const [marcarTodasMutation] = useMutation(MARCAR_TODAS_NOTIFICACIONES_LEIDAS);
+
+  const notificaciones = useMemo(
+    () => data?.obtenerNotificacionesUsuario.contenido ?? [],
+    [data],
+  );
+
+  const noLeidas = data?.obtenerNotificacionesUsuario.totalNoLeidas ?? 0;
+  const refreshing = networkStatus === 4;
+
+  useEffect(() => {
+    if (loading) {
+      appLog.info('Notif Móvil', 'Cargando notificaciones para usuario', idUsuario);
+      return;
+    }
+    if (error) {
+      appLog.warn('Notif Móvil', 'Error al cargar notificaciones:', error.message);
+      return;
+    }
+    if (data?.obtenerNotificacionesUsuario) {
+      const { contenido, totalNoLeidas } = data.obtenerNotificacionesUsuario;
+      appLog.info('Notif Móvil', 'Notificaciones cargadas:', {
+        total: contenido.length,
+        noLeidas: totalNoLeidas,
+        ultimas: contenido.slice(0, 3).map((n) => ({ id: n.id, tipo: n.tipo, titulo: n.titulo, leido: n.leido })),
       });
     }
+  }, [data, loading, error, idUsuario]);
 
-    const { status } = await Notifications.requestPermissionsAsync();
-    setPermisosConcedidos(status === 'granted');
-
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permisos denegados',
-        'No podrás recibir notificaciones push. Actívalas desde los ajustes de tu dispositivo.',
-      );
-    }
-  }, []);
-
-  // Solicitar permisos automáticamente al montar la pantalla
-  useEffect(() => {
-    solicitarPermisos();
-  }, [solicitarPermisos]);
-
-  /**
-   * Automatización reactiva: cuando el Switch (pushActivo) está activo
-   * Y los permisos fueron concedidos, dispara una notificación local
-   * cada 5 segundos simulando eventos del backend.
-   * Al apagar el Switch o desmontar el componente, limpia el intervalo.
-   */
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    // Limpiar cualquier intervalo previo antes de evaluar
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (pushActivo && permisosConcedidos) {
-      intervalRef.current = setInterval(async () => {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: '🚌 ¡Actualización de tu viaje!',
-            body: 'Tu bus hacia Cochabamba está abordando en el Andén 5.',
-            sound: 'default',
-            data: { tipo: 'alerta', idViaje: 999 },
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-            seconds: 1, // Se dispara 1s después de ser programada
-          },
-        });
-      }, 5000); // Programa una nueva notificación cada 5 segundos
-    }
-
-    // Cleanup: se ejecuta al cambiar pushActivo, permisosConcedidos, o al desmontar
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+  const marcarLeida = useCallback(
+    async (id: string) => {
+      try {
+        appLog.info('Notif Móvil', 'Marcando como leída:', id);
+        await marcarLeidaMutation({ variables: { id } });
+        await refetch();
+        appLog.info('Notif Móvil', 'Notificación marcada como leída:', id);
+      } catch (error) {
+        appLog.warn('Notif Móvil', 'Error al marcar leída:', error);
       }
-    };
-  }, [pushActivo, permisosConcedidos]);
+    },
+    [marcarLeidaMutation, refetch],
+  );
 
-  /** Marca todas como leídas */
-  const marcarTodoLeido = useCallback(() => {
-    setNotificaciones((prev) => prev.map((n) => ({ ...n, leido: true })));
-  }, []);
+  const marcarTodoLeido = useCallback(async () => {
+    if (!idUsuario) return;
+    try {
+      appLog.info('Notif Móvil', 'Marcando todas como leídas, usuario:', idUsuario);
+      await marcarTodasMutation({ variables: { idUsuario } });
+      await refetch();
+      appLog.info('Notif Móvil', 'Todas las notificaciones marcadas como leídas');
+    } catch (error) {
+      appLog.warn('Notif Móvil', 'Error al marcar todas:', error);
+    }
+  }, [idUsuario, marcarTodasMutation, refetch]);
 
-  /** Elimina una notificación individualmente con swipe conceptual (tap) */
-  const eliminarNotificacion = useCallback((id: string) => {
-    setNotificaciones((prev) => prev.filter((n) => n.id !== id));
-  }, []);
-
-  /** Marca una sola como leída */
-  const marcarLeida = useCallback((id: string) => {
-    setNotificaciones((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, leido: true } : n)),
-    );
-  }, []);
-
-  /** Contador de no leídas */
-  const noLeidas = notificaciones.filter((n) => !n.leido).length;
-
-  /* ── Renderizado de cada tarjeta ── */
-  const renderItem = ({ item }: { item: Notificacion }) => {
-    const config = TIPO_CONFIG[item.tipo];
+  const renderItem = ({ item }: { item: NotificacionItem }) => {
+    const tipoVisual = mapTipoVisual(item.tipo);
+    const config = TIPO_CONFIG[tipoVisual];
 
     return (
       <TouchableOpacity
@@ -211,7 +194,7 @@ export default function NotificacionesScreen() {
           { borderLeftColor: config.color },
           !item.leido && { backgroundColor: config.bgColor },
         ]}
-        onPress={() => marcarLeida(item.id)}
+        onPress={() => !item.leido && marcarLeida(item.id)}
         activeOpacity={0.8}
       >
         <View style={styles.cardHeader}>
@@ -222,15 +205,8 @@ export default function NotificacionesScreen() {
             <Text style={styles.cardTitle} numberOfLines={1}>
               {item.titulo}
             </Text>
-            <Text style={styles.cardTime}>{item.tiempo}</Text>
+            <Text style={styles.cardTime}>{formatearTiempo(item.fechaCreacion)}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => eliminarNotificacion(item.id)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="close-circle-outline" size={20} color={COLORS.placeholder} />
-          </TouchableOpacity>
         </View>
         <Text style={styles.cardMessage}>{item.mensaje}</Text>
         {!item.leido && <View style={[styles.unreadDot, { backgroundColor: config.color }]} />}
@@ -238,40 +214,54 @@ export default function NotificacionesScreen() {
     );
   };
 
-  /* ── Estado vacío ── */
-  const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="notifications-off-outline" size={64} color={COLORS.placeholder} />
-      <Text style={styles.emptyTitle}>Todo en orden</Text>
-      <Text style={styles.emptyText}>
-        No tienes notificaciones nuevas por el momento, ¡prepárate para tu próximo viaje!
-      </Text>
-    </View>
-  );
+  const renderEmpty = () => {
+    if (loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color={COLORS.secondary} />
+          <Text style={styles.emptyText}>Cargando notificaciones...</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="notifications-off-outline" size={64} color={COLORS.placeholder} />
+        <Text style={styles.emptyTitle}>Todo en orden</Text>
+        <Text style={styles.emptyText}>
+          No tienes notificaciones nuevas por el momento, ¡prepárate para tu próximo viaje!
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View style={globalStyles.safeAreaContainer}>
-      {/* ─── Controles superiores ─── */}
       <View style={styles.controlsContainer}>
-        {/* Switch de notificaciones push */}
-        <View style={styles.switchRow}>
-          <View style={styles.switchLabel}>
-            <Ionicons
-              name={pushActivo ? 'notifications' : 'notifications-off'}
-              size={20}
-              color={pushActivo ? COLORS.secondary : COLORS.placeholder}
-            />
-            <Text style={styles.switchText}>Recibir notificaciones push</Text>
+        {!pushRemotoDisponible && avisoPush ? (
+          <View style={styles.expoGoBanner}>
+            <Ionicons name="information-circle" size={18} color={COLORS.info} />
+            <Text style={styles.expoGoBannerText}>{avisoPush}</Text>
           </View>
-          <Switch
-            value={pushActivo}
-            onValueChange={setPushActivo}
-            trackColor={{ false: COLORS.border, true: COLORS.secondary + '50' }}
-            thumbColor={pushActivo ? COLORS.secondary : COLORS.placeholder}
-          />
-        </View>
+        ) : (
+          <View style={styles.switchRow}>
+            <View style={styles.switchLabel}>
+              <Ionicons
+                name={pushActivo ? 'notifications' : 'notifications-off'}
+                size={20}
+                color={pushActivo ? COLORS.secondary : COLORS.placeholder}
+              />
+              <Text style={styles.switchText}>Recibir notificaciones push</Text>
+            </View>
+            <Switch
+              value={pushActivo}
+              onValueChange={togglePush}
+              trackColor={{ false: COLORS.border, true: COLORS.secondary + '50' }}
+              thumbColor={pushActivo ? COLORS.secondary : COLORS.placeholder}
+            />
+          </View>
+        )}
 
-        {/* Barra de acciones */}
         <View style={styles.actionsRow}>
           <Text style={styles.countText}>
             {noLeidas > 0 ? `${noLeidas} sin leer` : 'Todas leídas'}
@@ -284,7 +274,6 @@ export default function NotificacionesScreen() {
         </View>
       </View>
 
-      {/* ─── Lista de notificaciones ─── */}
       <FlatList
         data={notificaciones}
         keyExtractor={(item) => item.id}
@@ -295,6 +284,15 @@ export default function NotificacionesScreen() {
         ]}
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              appLog.info('Notif Móvil', 'Refrescando lista de notificaciones');
+              refetch();
+            }}
+          />
+        }
       />
     </View>
   );

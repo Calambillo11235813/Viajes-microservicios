@@ -43,6 +43,10 @@ type Query {
 
     buscarDestinosPorImagen(urlImagen: String!): [DestinoRecomendado!]!
     generarReelTuristico(idRuta: Int!): ReelTuristico!
+
+    obtenerNotificacionesUsuario(idUsuario: Int!, estado: FiltroNotificacion = TODAS, pagina: Int = 0, tamanio: Int = 20): PaginaNotificaciones!
+
+    contarNotificacionesNoLeidas(idUsuario: Int!): Int!
 }
 
 type Mutation {
@@ -157,6 +161,18 @@ type Mutation {
         tiempoPermanenciaSeg: Int
         dispositivo: String
     ): Boolean!
+
+    enviarNotificacionPorViaje(input: NotificacionViajeInput!): [Notificacion!]!
+
+    enviarNotificacionPorUsuario(input: NotificacionUsuarioInput!): [Notificacion!]!
+
+    marcarNotificacionLeida(id: ID!): Notificacion!
+
+    marcarTodasNotificacionesLeidas(idUsuario: Int!): Boolean!
+
+    registrarDispositivoPush(input: RegistrarDispositivoPushInput!): Boolean!
+
+    desactivarDispositivoPush(token: String!): Boolean!
 }
 
 type PaginaViajes {
@@ -259,6 +275,7 @@ type HistorialViaje {
     ciudadOrigen: String!
     ciudadDestino: String!
     fechaHoraSalida: String!
+    fechaHoraLlegada: String!
     fechaCreacion: String!
     estadoReserva: String!
     montoTotalPagado: Float!
@@ -345,4 +362,60 @@ type DestinoRecomendado {
 type ReelTuristico {
     urlVideo: String!
     duracionSegundos: Int!
+}
+
+enum TipoNotificacion {
+    EMERGENCIA_RUTA
+    DOCUMENTACION_FALTANTE
+    CAMBIO_HORARIO
+    CANCELACION
+    RETRASO
+}
+
+enum FiltroNotificacion {
+    TODAS
+    LEIDAS
+    NO_LEIDAS
+}
+
+type Notificacion {
+    id: ID!
+    idUsuario: ID!
+    tipo: TipoNotificacion!
+    titulo: String!
+    mensaje: String!
+    fechaCreacion: String!
+    leido: Boolean!
+    datosExtraJson: String
+}
+
+type PaginaNotificaciones {
+    contenido: [Notificacion!]!
+    totalPaginas: Int!
+    totalElementos: Int!
+    paginaActual: Int!
+    tieneSiguiente: Boolean!
+    totalNoLeidas: Int!
+}
+
+input NotificacionViajeInput {
+    idViaje: Int!
+    tipo: TipoNotificacion!
+    titulo: String!
+    mensaje: String!
+    datosExtraJson: String
+}
+
+input NotificacionUsuarioInput {
+    idsUsuario: [Int!]!
+    tipo: TipoNotificacion!
+    titulo: String!
+    mensaje: String!
+    datosExtraJson: String
+}
+
+input RegistrarDispositivoPushInput {
+    idUsuario: Int!
+    token: String!
+    plataforma: String!
 }

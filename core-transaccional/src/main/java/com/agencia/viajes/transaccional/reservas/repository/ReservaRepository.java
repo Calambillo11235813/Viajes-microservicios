@@ -132,5 +132,27 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
             WHERE r.usuario.id = :idUsuario
             """)
     Page<Reserva> buscarHistorialPorUsuarioPaginado(@Param("idUsuario") Integer idUsuario, Pageable pageable);
+
+    /**
+     * Obtiene los IDs de usuarios con reservas activas en un viaje.
+     */
+    @Query("""
+            SELECT DISTINCT r.usuario.id
+            FROM Reserva r
+            WHERE r.viajeProgramado.id = :idViaje
+              AND r.estadoReserva <> 'CANCELADA'
+            """)
+    List<Integer> buscarIdsUsuariosActivosPorViaje(@Param("idViaje") Integer idViaje);
+
+    /**
+     * Obtiene los IDs de usuarios con reservas confirmadas en un viaje.
+     */
+    @Query("""
+            SELECT DISTINCT r.usuario.id
+            FROM Reserva r
+            WHERE r.viajeProgramado.id = :idViaje
+              AND r.estadoReserva = 'CONFIRMADA'
+            """)
+    List<Integer> buscarIdsUsuariosConfirmadosPorViaje(@Param("idViaje") Integer idViaje);
 }
 

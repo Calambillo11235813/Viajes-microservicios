@@ -7,7 +7,7 @@
  */
 
 // Cambia esta IP por la de tu computadora
-const LOCAL_IP = '192.168.0.5';
+const LOCAL_IP = '192.168.0.3';
 
 export const CONFIG = {
   // Microservicio A: Spring Boot (GraphQL - Transaccional)

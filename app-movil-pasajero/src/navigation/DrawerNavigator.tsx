@@ -10,9 +10,10 @@ import NotificacionesScreen from '@/screens/home/NotificacionesScreen';
 import GenerarReelScreen from '@/screens/home/GenerarReelScreen';
 import ProfileScreen from '@/screens/home/ProfileScreen';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/theme/theme';
-
-/** Número simulado de notificaciones no leídas */
-const NOTIF_BADGE_COUNT = 3;
+import { useUnreadNotificationsCount } from '@/hooks/useUnreadNotificationsCount';
+import { solicitarRefreshNotificaciones } from '@/utils/notificationsEvents';
+import { PushNotificationsProvider } from '@/context/PushNotificationsContext';
+import { intervaloPollingNotificaciones } from '@/utils/pushCapabilities';
 
 /**
  * Navegador principal con Drawer personalizado.
@@ -37,6 +38,7 @@ export default function DrawerNavigator() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('Buscar');
   const [searchStackNav, setSearchStackNav] = useState<SearchStackNavigation | null>(null);
+  const unreadCount = useUnreadNotificationsCount(intervaloPollingNotificaciones());
 
   const openDrawer = useCallback(() => setIsDrawerOpen(true), []);
   const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
@@ -44,6 +46,9 @@ export default function DrawerNavigator() {
   const handleNavigate = useCallback((section: string) => {
     if (section === 'Buscar') {
       setSearchStackNav(null);
+    }
+    if (section === 'Notificaciones') {
+      solicitarRefreshNotificaciones();
     }
     setActiveSection(section);
   }, []);
@@ -122,6 +127,7 @@ export default function DrawerNavigator() {
   const showCustomHeader = activeSection !== 'Buscar';
 
   return (
+    <PushNotificationsProvider>
     <View style={styles.container}>
       {/* ─── Header global con hamburguesa ─── */}
       {showCustomHeader && (
@@ -137,9 +143,11 @@ export default function DrawerNavigator() {
             activeOpacity={0.7}
           >
             <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
-            {activeSection !== 'Notificaciones' && NOTIF_BADGE_COUNT > 0 && (
+            {activeSection !== 'Notificaciones' && unreadCount > 0 && (
               <View style={styles.bellBadge}>
-                <Text style={styles.bellBadgeText}>{NOTIF_BADGE_COUNT}</Text>
+                <Text style={styles.bellBadgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -168,9 +176,11 @@ export default function DrawerNavigator() {
             activeOpacity={0.8}
           >
             <Ionicons name="notifications-outline" size={22} color={COLORS.textLight} />
-            {NOTIF_BADGE_COUNT > 0 && (
+            {unreadCount > 0 && (
               <View style={styles.floatingBellBadge}>
-                <Text style={styles.floatingBellBadgeText}>{NOTIF_BADGE_COUNT}</Text>
+                <Text style={styles.floatingBellBadgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -185,6 +195,7 @@ export default function DrawerNavigator() {
         onNavigate={handleNavigate}
       />
     </View>
+    </PushNotificationsProvider>
   );
 }
 
