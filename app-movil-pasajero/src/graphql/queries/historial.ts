@@ -1,17 +1,22 @@
 import { gql } from '@apollo/client';
 
 export const CONSULTAR_HISTORIAL_VIAJES = gql`
-  query ConsultarHistorialViajes($idUsuario: Int!) {
-    consultarHistorialViajes(idUsuario: $idUsuario) {
-      idReserva
-      idViaje
-      ciudadOrigen
-      ciudadDestino
-      fechaHoraSalida
-      fechaCreacion
-      estadoReserva
-      montoTotalPagado
-      cantidadPasajeros
+  query ConsultarHistorialViajes($idUsuario: Int!, $pagina: Int, $tamanio: Int) {
+    consultarHistorialViajes(idUsuario: $idUsuario, pagina: $pagina, tamanio: $tamanio) {
+      contenido {
+        idReserva
+        idViaje
+        ciudadOrigen
+        ciudadDestino
+        fechaHoraSalida
+        fechaCreacion
+        estadoReserva
+        montoTotalPagado
+        cantidadPasajeros
+      }
+      totalPaginas
+      paginaActual
+      tieneSiguiente
     }
   }
 `;

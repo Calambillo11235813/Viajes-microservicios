@@ -1,11 +1,23 @@
-import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink, from } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
 import { CONFIG } from '../utils/config';
+import { getAuthToken } from '../utils/authToken';
+
+const httpLink = new HttpLink({
+  uri: CONFIG.GRAPHQL_URL,
+});
+
+const authLink = setContext((_, { headers }) => {
+  const token = getAuthToken();
+  return {
+    headers: {
+      ...headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+});
 
 export const apolloClient = new ApolloClient({
-  // Asegúrate de cambiar la IP local a la IP de tu computadora (por ejemplo 192.168.1.100) 
-  // si pruebas desde un dispositivo físico Android/iOS, ya que localhost no funcionará.
-  link: new HttpLink({
-    uri: CONFIG.GRAPHQL_URL,
-  }),
+  link: from([authLink, httpLink]),
   cache: new InMemoryCache(),
 });

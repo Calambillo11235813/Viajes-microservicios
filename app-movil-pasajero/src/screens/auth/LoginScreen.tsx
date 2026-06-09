@@ -12,6 +12,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useMutation } from '@apollo/client/react';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/theme/theme';
 import { LOGIN_MUTATION } from '@/graphql/mutations/auth';
 import { useAuth } from '@/context/AuthContext';
@@ -19,18 +20,22 @@ import { useAuth } from '@/context/AuthContext';
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('test@test.com'); // Datos pre-cargados para desarrollo
   const [password, setPassword] = useState('123456');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { setUser } = useAuth();
+  const { setSession } = useAuth();
   
   const [loginMutation, { loading }] = useMutation<any>(LOGIN_MUTATION, {
     onCompleted: (data) => {
-      const usuario = data.login.usuario;
+      const { token, usuario } = data.login;
       console.log('Login exitoso:', usuario);
-      setUser({
-        ...usuario,
-        idUsuario: Number(usuario.idUsuario),
-        idRol: Number(usuario.idRol),
-      });
+      setSession(
+        {
+          ...usuario,
+          idUsuario: Number(usuario.idUsuario),
+          idRol: Number(usuario.idRol),
+        },
+        token
+      );
     },
     onError: (error) => {
       console.error('Error de login:', error);
@@ -80,15 +85,30 @@ export default function LoginScreen({ navigation }: any) {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Contraseña</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ingresa tu contraseña"
-              placeholderTextColor={COLORS.placeholder}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!loading}
-            />
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Ingresa tu contraseña"
+                placeholderTextColor={COLORS.placeholder}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.passwordToggle}
+                onPress={() => setShowPassword((prev) => !prev)}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={22}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity style={styles.forgotPassword} disabled={loading}>
@@ -161,6 +181,25 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     ...TYPOGRAPHY.body,
     color: COLORS.textPrimary,
+  },
+  passwordWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
+    ...TYPOGRAPHY.body,
+    color: COLORS.textPrimary,
+  },
+  passwordToggle: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
   },
   forgotPassword: {
     alignSelf: 'flex-end',

@@ -1,8 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { CONSULTAR_HISTORIAL_VIAJES, CANCELAR_RESERVA } from '@/graphql/queries/historial';
 import { useAuth } from '@/context/AuthContext';
 import { Alert } from 'react-native';
+
+interface ConsultarHistorialViajesData {
+  consultarHistorialViajes: {
+    contenido: ViajeRaw[];
+    totalPaginas: number;
+    paginaActual: number;
+    tieneSiguiente: boolean;
+  };
+}
 
 export interface ViajeRaw {
   idReserva: string;
@@ -29,14 +38,14 @@ export interface ViajeConsolidado {
 }
 
 export const useMyTrips = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const idUsuario = user?.idUsuario ? Number(user.idUsuario) : undefined;
   const [cancelLoading, setCancelLoading] = useState(false);
 
-  const { data, loading, error, refetch } = useQuery<{ consultarHistorialViajes: ViajeRaw[] }>(
+  const { data, loading, error, refetch } = useQuery<ConsultarHistorialViajesData>(
     CONSULTAR_HISTORIAL_VIAJES,
     {
-      variables: { idUsuario },
+      variables: { idUsuario, pagina: 0, tamanio: 100 },
       skip: !idUsuario,
       fetchPolicy: 'cache-and-network',
     }
@@ -44,7 +53,38 @@ export const useMyTrips = () => {
 
   const [cancelarReservaMutation] = useMutation<any>(CANCELAR_RESERVA);
 
-  const viajesRaw: ViajeRaw[] = data?.consultarHistorialViajes || [];
+  const viajesRaw: ViajeRaw[] = data?.consultarHistorialViajes?.contenido ?? [];
+
+  useEffect(() => {
+    console.log('[Historial] Usuario:', user);
+    console.log('[Historial] idUsuario:', idUsuario, '| tieneToken:', Boolean(token));
+    console.log('[Historial] skip query:', !idUsuario);
+  }, [user, idUsuario, token]);
+
+  useEffect(() => {
+    if (loading) {
+      console.log('[Historial] Cargando consultarHistorialViajes...');
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (error) {
+      console.error('[Historial] Error GraphQL:', error.message);
+      console.error('[Historial] Detalle completo:', JSON.stringify(error, null, 2));
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (!data?.consultarHistorialViajes) return;
+
+    const pagina = data.consultarHistorialViajes;
+    console.log('[Historial] Respuesta OK:', {
+      totalRegistros: pagina.contenido.length,
+      paginaActual: pagina.paginaActual,
+      totalPaginas: pagina.totalPaginas,
+      tieneSiguiente: pagina.tieneSiguiente,
+    });
+  }, [data]);
 
   const viajes = useMemo(() => {
     const map = new Map<string, ViajeConsolidado>();

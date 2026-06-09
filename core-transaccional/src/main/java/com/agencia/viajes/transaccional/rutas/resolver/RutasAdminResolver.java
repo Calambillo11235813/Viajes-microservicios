@@ -40,12 +40,14 @@ public class RutasAdminResolver {
         }
     }
 
+    /**
+     * Catálogo de rutas (origen/destino) para CU-01 y formularios de búsqueda del pasajero.
+     * Lectura pública, igual que {@code buscarRutasYHorariosDisponibles}.
+     */
     @QueryMapping
     public com.agencia.viajes.transaccional.rutas.dto.PaginaRutasResponse listarRutas(
             @Argument Integer pagina,
-            @Argument Integer tamanio,
-            GraphQLContext context) {
-        verificarLectura(context);
+            @Argument Integer tamanio) {
         int p = (pagina != null) ? pagina : 0;
         int t = (tamanio != null) ? tamanio : 10;
         return rutasAdminService.listarRutas(p, t);
