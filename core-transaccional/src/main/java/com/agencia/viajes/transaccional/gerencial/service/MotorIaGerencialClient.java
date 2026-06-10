@@ -26,8 +26,8 @@ public class MotorIaGerencialClient {
     private final ObjectMapper objectMapper;
     private final MotorIaGerencialProperties properties;
 
-    @CircuitBreaker(name = "motorIa", fallbackMethod = "obtenerReglasFallback")
-    @Retry(name = "motorIa")
+    @CircuitBreaker(name = "motorIaReglas", fallbackMethod = "obtenerReglasFallback")
+    @Retry(name = "motorIaReglas")
     public CU10ReglasResponse obtenerReglasAsociacion() {
         return motorIaRestClient.get()
                 .uri(properties.getReglasAsociacionPath())
@@ -40,8 +40,8 @@ public class MotorIaGerencialClient {
         return null;
     }
 
-    @CircuitBreaker(name = "motorIa", fallbackMethod = "obtenerEstadisticasFallback")
-    @Retry(name = "motorIa")
+    @CircuitBreaker(name = "motorIaStats", fallbackMethod = "obtenerEstadisticasFallback")
+    @Retry(name = "motorIaStats")
     public CU11EstadisticasResponse obtenerEstadisticasClusters() {
         return motorIaRestClient.get()
                 .uri(properties.getEstadisticasClustersPath())
@@ -54,8 +54,8 @@ public class MotorIaGerencialClient {
         return null;
     }
 
-    @CircuitBreaker(name = "motorIa", fallbackMethod = "segmentarUsuarioFallback")
-    @Retry(name = "motorIa")
+    @CircuitBreaker(name = "motorIaSegmentar", fallbackMethod = "segmentarUsuarioFallback")
+    @Retry(name = "motorIaSegmentar")
     public CU11SegmentarResponse segmentarUsuario(Map<String, Object> caracteristicas) {
         try {
             String jsonBody = objectMapper.writeValueAsString(caracteristicas);

@@ -50,6 +50,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -61,15 +62,21 @@ public class GerencialService {
 
     private static final Logger log = LoggerFactory.getLogger(GerencialService.class);
 
+    @Value("${bi.segmentacion.batch-size:50}")
+    private int segmentacionBatchSize;
+
+    @Value("${bi.segmentacion.parallelism:3}")
+    private int segmentacionParallelism;
+
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        log.info("[BI-INIT] Forzando resegmentación y reglas para llenar dashboard...");
+        log.info("[BI-INIT] Forzando carga de reglas y resegmentación para llenar dashboard...");
         dashboardKpiSnapshotRepository.deleteAll();
         reglaAsociacionCacheRepository.deleteAll();
         usuarioClusterHistoricoRepository.deleteAll();
 
-        ejecutarResegmentacionMasiva();
         refrescarReglasDeAsociacion();
+        ejecutarResegmentacionMasiva();
     }
 
     private final MotorIaGerencialClient motorIaClient;
@@ -425,19 +432,20 @@ public class GerencialService {
             log.info("[BI] Actualizadas {} reglas de asociación.", entities.size());
             actualizarSnapshot();
         } else {
-            log.warn("[BI] El motor IA devolvió reglas vacías o nulas. Se retiene la caché actual.");
+            log.warn("[BI] No se pudieron cargar reglas (motor IA no respondió o devolvió lista vacía). Se retiene la caché actual.");
         }
     }
 
     @Transactional
     public void ejecutarResegmentacionMasiva() {
-        log.info("[BI] Iniciando resegmentación masiva (CU11) con batching");
-        int pageSize = 50;
+        log.info("[BI] Iniciando resegmentación masiva (CU11) con batching (batch={}, paralelismo={})",
+                segmentacionBatchSize, segmentacionParallelism);
         org.springframework.data.domain.Page<Usuario> pagina = usuarioRepository
-                .findAll(org.springframework.data.domain.PageRequest.of(0, pageSize));
+                .findAll(org.springframework.data.domain.PageRequest.of(0, segmentacionBatchSize));
         int procesados = 0;
 
-        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(10);
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors
+                .newFixedThreadPool(segmentacionParallelism);
 
         try {
             while (!pagina.isEmpty()) {

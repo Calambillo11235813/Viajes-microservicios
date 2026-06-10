@@ -72,7 +72,7 @@ task cleanDatabase {
 		def driver = driverClass.getDeclaredConstructor().newInstance()
 		def props = new java.util.Properties()
 		props.setProperty("user", "postgres")
-		props.setProperty("password", "12345")
+		props.setProperty("password", "nicolas123")
 		def conn = driver.connect("jdbc:postgresql://localhost:5432/core_transaccional_db", props)
 		def stmt = conn.createStatement()
 		stmt.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")

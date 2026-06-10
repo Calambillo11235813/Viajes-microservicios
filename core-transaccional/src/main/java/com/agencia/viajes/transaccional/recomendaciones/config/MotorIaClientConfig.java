@@ -16,9 +16,6 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class MotorIaClientConfig {
 
-    /** Timeout de conexión y de lectura hacia el motor IA. */
-    private static final Duration TIMEOUT = Duration.ofSeconds(3);
-
     /**
      * Expone {@link ObjectMapper} para serializar peticiones JSON al motor IA.
      * Spring Boot 4 con webmvc no lo registra automáticamente como bean.
@@ -32,13 +29,17 @@ public class MotorIaClientConfig {
      * Construye el {@link RestClient} apuntando al host del motor IA.
      *
      * @param baseUrl host base del motor IA (propiedad {@code motor-ia.base-url}).
-     * @return cliente REST con timeouts de 3 segundos y conexión no persistente.
+     * @param timeoutSeconds timeout de conexión y lectura en segundos.
+     * @return cliente REST con conexión no persistente.
      */
     @Bean
-    public RestClient motorIaRestClient(@Value("${motor-ia.base-url}") String baseUrl) {
+    public RestClient motorIaRestClient(
+            @Value("${motor-ia.base-url}") String baseUrl,
+            @Value("${motor-ia.timeout-seconds:15}") int timeoutSeconds) {
+        Duration timeout = Duration.ofSeconds(timeoutSeconds);
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout((int) TIMEOUT.toMillis());
-        factory.setReadTimeout((int) TIMEOUT.toMillis());
+        factory.setConnectTimeout((int) timeout.toMillis());
+        factory.setReadTimeout((int) timeout.toMillis());
 
         return RestClient.builder()
                 .baseUrl(baseUrl)
