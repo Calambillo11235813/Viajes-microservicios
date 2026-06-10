@@ -81,6 +81,7 @@
         <div class="h-[500px]">
           <app-cluster-evolution-chart 
             [evolucion]="evolucion$ | async"
+            [reporteVentas]="reporteVentas$ | async"
             (filtrosCambiados)="actualizarFiltrosEvolucion($event)"
             class="h-full block">
           </app-cluster-evolution-chart>

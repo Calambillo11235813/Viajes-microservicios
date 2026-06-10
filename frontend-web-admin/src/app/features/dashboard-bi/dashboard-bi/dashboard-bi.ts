@@ -11,7 +11,8 @@ import {
   DistribucionClustersResponse, 
   ReglaAsociacionEnriquecida,
   EvolucionClustersResponse,
-  MapaRutasComplementariasResponse
+  MapaRutasComplementariasResponse,
+  ReporteVentas
 } from '../../../core/models/business.models';
 
 import { KpiCardsComponent } from '../components/kpi-cards.component';
@@ -43,6 +44,7 @@ export class DashboardBi implements OnInit {
   kpis$!: Observable<KpisGeneralesResponse>;
   distribucion$!: Observable<DistribucionClustersResponse>;
   evolucion$!: Observable<EvolucionClustersResponse>;
+  reporteVentas$!: Observable<ReporteVentas>;
   mapa$!: Observable<MapaRutasComplementariasResponse>;
   
   ordenReglasSubject = new BehaviorSubject<string>('lift');
@@ -98,6 +100,11 @@ export class DashboardBi implements OnInit {
       catchError(this.handleError.bind(this))
     );
 
+    this.reporteVentas$ = this.graphql.generarReporteVentas(this.fechaInicioDefault, this.fechaFinDefault).pipe(
+      shareReplay(1),
+      catchError(this.handleError.bind(this))
+    );
+
     this.reglas$ = this.ordenReglasSubject.pipe(
       switchMap(orden => this.graphql.obtenerReglasAsociacion(20, orden).pipe(
         catchError(this.handleError.bind(this))
@@ -112,6 +119,10 @@ export class DashboardBi implements OnInit {
 
   actualizarFiltrosEvolucion(filtros: {inicio: string, fin: string, intervalo: string}) {
     this.evolucion$ = this.graphql.obtenerEvolucionClusters(filtros.inicio, filtros.fin, filtros.intervalo).pipe(
+      shareReplay(1),
+      catchError(this.handleError.bind(this))
+    );
+    this.reporteVentas$ = this.graphql.generarReporteVentas(filtros.inicio, filtros.fin).pipe(
       shareReplay(1),
       catchError(this.handleError.bind(this))
     );

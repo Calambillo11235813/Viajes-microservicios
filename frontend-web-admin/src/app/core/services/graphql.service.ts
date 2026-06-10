@@ -13,7 +13,7 @@ export class GraphqlService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private router = inject(Router);
-  private readonly API_URL = 'http://localhost:9090/graphql';
+  private readonly API_URL = 'http://localhost:8080/graphql';
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();

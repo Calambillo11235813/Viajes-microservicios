@@ -8,7 +8,7 @@ import { LoginCredentials, AuthResponse, UsuarioPerfil } from '../models/auth.mo
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:9090/graphql';
+  private readonly API_URL = 'http://localhost:8080/graphql';
   
   private currentUserSubject = new BehaviorSubject<UsuarioPerfil | null>(this.getStoredProfile());
   public currentUser$ = this.currentUserSubject.asObservable();

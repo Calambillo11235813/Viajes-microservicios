@@ -19,7 +19,26 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def home_view(request):
+    return JsonResponse({
+        "status": "ok",
+        "message": "Motor de IA ejecutándose correctamente.",
+        "endpoints": [
+            "/api/predict/",
+            "/api/generar-reel/",
+            "/api/traducir-imagen/",
+            "/api/recomendar-ruta/",
+            "/api/reglas-asociacion/",
+            "/api/segmentar-usuario/"
+        ]
+    })
+
 urlpatterns = [
+    path('', home_view),
     path('admin/', admin.site.urls),
     path('api/predict/', include('api_destinos.urls')),
     path('api/generar-reel/', include('api_reels.urls')),

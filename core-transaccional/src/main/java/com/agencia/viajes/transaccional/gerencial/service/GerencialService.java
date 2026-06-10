@@ -63,14 +63,13 @@ public class GerencialService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        if (dashboardKpiSnapshotRepository.count() == 0) {
-            log.info("[BI-INIT] Generando Snapshot Inicial para el Dashboard...");
-            ejecutarResegmentacionMasiva();
-        }
-        if (reglaAsociacionCacheRepository.count() == 0) {
-            log.info("[BI-INIT] Caché de reglas vacía. Refrescando reglas de asociación...");
-            refrescarReglasDeAsociacion();
-        }
+        log.info("[BI-INIT] Forzando resegmentación y reglas para llenar dashboard...");
+        dashboardKpiSnapshotRepository.deleteAll();
+        reglaAsociacionCacheRepository.deleteAll();
+        usuarioClusterHistoricoRepository.deleteAll();
+
+        ejecutarResegmentacionMasiva();
+        refrescarReglasDeAsociacion();
     }
 
     private final MotorIaGerencialClient motorIaClient;
@@ -97,14 +96,22 @@ public class GerencialService {
         Map<Integer, String> etiquetas = clusterCalculadorService.inferirEtiquetasClusters();
 
         try {
-            Map<String, Integer> distribucion = objectMapper.readValue(snapshot.getDistribucionClusters(), new TypeReference<>() {});
-            Map<String, Double> ingresos = objectMapper.readValue(snapshot.getIngresoPorCluster(), new TypeReference<>() {});
-            Map<String, Double> conversion = objectMapper.readValue(snapshot.getConversionPorCluster(), new TypeReference<>() {});
+            Map<String, Integer> distribucion = objectMapper.readValue(snapshot.getDistribucionClusters(),
+                    new TypeReference<>() {
+                    });
+            Map<String, Double> ingresos = objectMapper.readValue(snapshot.getIngresoPorCluster(),
+                    new TypeReference<>() {
+                    });
+            Map<String, Double> conversion = objectMapper.readValue(snapshot.getConversionPorCluster(),
+                    new TypeReference<>() {
+                    });
 
             List<ClusterResumen> clusters = distribucion.entrySet().stream().map(e -> {
                 int clusterId = Integer.parseInt(e.getKey());
                 int cantidad = e.getValue();
-                double pct = snapshot.getTotalUsuariosSegmentados() > 0 ? (cantidad * 100.0) / snapshot.getTotalUsuariosSegmentados() : 0.0;
+                double pct = snapshot.getTotalUsuariosSegmentados() > 0
+                        ? (cantidad * 100.0) / snapshot.getTotalUsuariosSegmentados()
+                        : 0.0;
                 double ingresoTotal = ingresos.getOrDefault(e.getKey(), 0.0);
                 double ingresoProm = cantidad > 0 ? ingresoTotal / cantidad : 0.0;
 
@@ -135,7 +142,9 @@ public class GerencialService {
                     .reglasAsociacion(ReglasAsociacionResumen.builder()
                             .totalReglas(snapshot.getTotalReglasAsociacion())
                             .reglasAltoLift(snapshot.getReglasAltoLiftCount())
-                            .supportPromedioTop20(snapshot.getSupportPromedioTop20() != null ? snapshot.getSupportPromedioTop20().doubleValue() : 0.0)
+                            .supportPromedioTop20(snapshot.getSupportPromedioTop20() != null
+                                    ? snapshot.getSupportPromedioTop20().doubleValue()
+                                    : 0.0)
                             .indiceCrossSelling(snapshot.getIndiceCrossSelling())
                             .build())
                     .build();
@@ -162,12 +171,15 @@ public class GerencialService {
 
         return reglas.stream().map(r -> {
             try {
-                List<Integer> ants = objectMapper.readValue(r.getAntecedents(), new TypeReference<>() {});
+                List<Integer> ants = objectMapper.readValue(r.getAntecedents(), new TypeReference<>() {
+                });
                 List<RutaBasica> antecedentes = ants.stream()
-                        .map(id -> RutaBasica.builder().idRuta(id).descripcion(rutasMap.getOrDefault(id, "Desconocida")).build())
+                        .map(id -> RutaBasica.builder().idRuta(id).descripcion(rutasMap.getOrDefault(id, "Desconocida"))
+                                .build())
                         .toList();
 
-                // El backend de Python a veces manda un array o un int para el consecuente, asumo int único por ahora basado en CU10ReglasResponse
+                // El backend de Python a veces manda un array o un int para el consecuente,
+                // asumo int único por ahora basado en CU10ReglasResponse
                 Integer consId = Integer.parseInt(r.getConsequents());
                 RutaBasica consecuente = RutaBasica.builder()
                         .idRuta(consId)
@@ -196,36 +208,38 @@ public class GerencialService {
 
     @Transactional(readOnly = true)
     public DistribucionClustersResponse obtenerDistribucionClusters() {
-        // En una app real esto leería de una vista materializada o haría una agregación.
-        // Por simplicidad, usamos una query nativa sobre el último snapshot de cada usuario.
+        // En una app real esto leería de una vista materializada o haría una
+        // agregación.
+        // Por simplicidad, usamos una query nativa sobre el último snapshot de cada
+        // usuario.
         String sql = """
-            WITH UltimoCluster AS (
-                SELECT id_usuario, cluster_id, total_gastado, num_reservas, rutas_distintas, promedio_pasajeros,
-                       ROW_NUMBER() OVER(PARTITION BY id_usuario ORDER BY fecha_asignacion DESC) as rn
-                FROM USUARIO_CLUSTER_HISTORICO
-            )
-            SELECT cluster_id,
-                   COUNT(id_usuario) as cantidad,
-                   AVG(total_gastado) as avg_gasto,
-                   AVG(num_reservas) as avg_reservas,
-                   AVG(rutas_distintas) as avg_rutas,
-                   AVG(promedio_pasajeros) as avg_pasajeros,
-                   SUM(total_gastado) as total_gasto
-            FROM UltimoCluster
-            WHERE rn = 1
-            GROUP BY cluster_id
-        """;
+                    WITH UltimoCluster AS (
+                        SELECT id_usuario, cluster_id, total_gastado, num_reservas, rutas_distintas, promedio_pasajeros,
+                               ROW_NUMBER() OVER(PARTITION BY id_usuario ORDER BY fecha_asignacion DESC) as rn
+                        FROM USUARIO_CLUSTER_HISTORICO
+                    )
+                    SELECT cluster_id,
+                           COUNT(id_usuario) as cantidad,
+                           AVG(total_gastado) as avg_gasto,
+                           AVG(num_reservas) as avg_reservas,
+                           AVG(rutas_distintas) as avg_rutas,
+                           AVG(promedio_pasajeros) as avg_pasajeros,
+                           SUM(total_gastado) as total_gasto
+                    FROM UltimoCluster
+                    WHERE rn = 1
+                    GROUP BY cluster_id
+                """;
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
         Map<Integer, String> etiquetas = clusterCalculadorService.inferirEtiquetasClusters();
-        
+
         int totalUsuarios = rows.stream().mapToInt(r -> ((Number) r.get("cantidad")).intValue()).sum();
-        
+
         List<ClusterDetalle> clusters = rows.stream().map(row -> {
             int clusterId = ((Number) row.get("cluster_id")).intValue();
             int cantidad = ((Number) row.get("cantidad")).intValue();
             double pct = totalUsuarios > 0 ? (cantidad * 100.0) / totalUsuarios : 0;
-            
+
             return ClusterDetalle.builder()
                     .clusterId(clusterId)
                     .etiqueta(etiquetas.getOrDefault(clusterId, "Cluster " + clusterId))
@@ -239,7 +253,8 @@ public class GerencialService {
                             .build())
                     .metricas(Metricas.builder()
                             .ingresoTotal(((Number) row.get("total_gasto")).doubleValue())
-                            .ingresoPromedio(cantidad > 0 ? ((Number) row.get("total_gasto")).doubleValue() / cantidad : 0)
+                            .ingresoPromedio(
+                                    cantidad > 0 ? ((Number) row.get("total_gasto")).doubleValue() / cantidad : 0)
                             // Conversión y ticket son mockeados aquí para simplicidad del MVP
                             .tasaConversion(0.7)
                             .ticketPromedio(150.0)
@@ -258,40 +273,42 @@ public class GerencialService {
     public EvolucionClustersResponse obtenerEvolucionClusters(String fechaInicio, String fechaFin, String intervalo) {
         // En el MVP usamos query agrupada mensual.
         String sql = """
-            WITH Meses AS (
-                SELECT date_trunc('month', fecha_asignacion) as mes, cluster_id, COUNT(id_usuario) as cantidad
-                FROM USUARIO_CLUSTER_HISTORICO
-                WHERE fecha_asignacion >= ?::timestamp AND fecha_asignacion <= ?::timestamp
-                GROUP BY mes, cluster_id
-            )
-            SELECT to_char(mes, 'YYYY-MM') as fecha_str, cluster_id, cantidad
-            FROM Meses
-            ORDER BY mes ASC, cluster_id ASC
-        """;
+                    WITH Meses AS (
+                        SELECT date_trunc('month', fecha_asignacion) as mes, cluster_id, COUNT(id_usuario) as cantidad
+                        FROM USUARIO_CLUSTER_HISTORICO
+                        WHERE fecha_asignacion >= ?::timestamp AND fecha_asignacion <= ?::timestamp
+                        GROUP BY mes, cluster_id
+                    )
+                    SELECT to_char(mes, 'YYYY-MM') as fecha_str, cluster_id, cantidad
+                    FROM Meses
+                    ORDER BY mes ASC, cluster_id ASC
+                """;
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, fechaInicio + " 00:00:00", fechaFin + " 23:59:59");
-        
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, fechaInicio + " 00:00:00",
+                fechaFin + " 23:59:59");
+
         Map<String, List<ClusterCantidad>> seriesMap = new HashMap<>();
         Map<String, Integer> totalesPorMes = new HashMap<>();
-        
+
         for (Map<String, Object> row : rows) {
             String fecha = (String) row.get("fecha_str");
             int clusterId = ((Number) row.get("cluster_id")).intValue();
             int cantidad = ((Number) row.get("cantidad")).intValue();
-            
+
             totalesPorMes.put(fecha, totalesPorMes.getOrDefault(fecha, 0) + cantidad);
-            
+
             seriesMap.putIfAbsent(fecha, new ArrayList<>());
             seriesMap.get(fecha).add(ClusterCantidad.builder().clusterId(clusterId).cantidad(cantidad).build());
         }
-        
+
         List<PuntoSerie> serie = seriesMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(e -> {
                     String fecha = e.getKey();
                     int totalMes = totalesPorMes.get(fecha);
                     List<ClusterCantidad> cl = e.getValue().stream().map(c -> {
-                        c.setPorcentaje(totalMes > 0 ? Math.round((c.getCantidad() * 100.0) / totalMes * 10.0) / 10.0 : 0.0);
+                        c.setPorcentaje(
+                                totalMes > 0 ? Math.round((c.getCantidad() * 100.0) / totalMes * 10.0) / 10.0 : 0.0);
                         return c;
                     }).toList();
                     return PuntoSerie.builder().fecha(fecha).clusters(cl).build();
@@ -314,10 +331,10 @@ public class GerencialService {
     @Transactional(readOnly = true)
     public MapaRutasComplementariasResponse obtenerMapaRutasComplementarias() {
         List<ReglaAsociacionEnriquecida> topReglas = obtenerReglasAsociacion(100, "lift");
-        
+
         Map<Integer, RutaBasica> rutasUnicas = new HashMap<>();
         List<CoOcurrencia> matriz = new ArrayList<>();
-        
+
         for (ReglaAsociacionEnriquecida r : topReglas) {
             rutasUnicas.put(r.getConsecuente().getIdRuta(), r.getConsecuente());
             for (RutaBasica ant : r.getAntecedentes()) {
@@ -340,39 +357,38 @@ public class GerencialService {
     @Transactional(readOnly = true)
     public RutasPorClusterResponse obtenerRutasPorCluster(int clusterId) {
         String sql = """
-            WITH UltimoCluster AS (
-                SELECT id_usuario, cluster_id,
-                       ROW_NUMBER() OVER(PARTITION BY id_usuario ORDER BY fecha_asignacion DESC) as rn
-                FROM USUARIO_CLUSTER_HISTORICO
-            )
-            SELECT v.id_ruta, rd.ciudad_origen, rd.ciudad_destino, COUNT(r.id_reserva) as frec, SUM(r.monto_total_pagado) as ingreso
-            FROM RESERVA r
-            JOIN VIAJE_PROGRAMADO v ON r.id_viaje = v.id_viaje
-            JOIN RUTA_DESTINO rd ON v.id_ruta = rd.id_ruta
-            JOIN UltimoCluster uc ON r.id_usuario = uc.id_usuario
-            WHERE uc.rn = 1 AND uc.cluster_id = ? AND r.estado_reserva <> 'CANCELADA'
-            GROUP BY v.id_ruta, rd.ciudad_origen, rd.ciudad_destino
-            ORDER BY frec DESC
-            LIMIT 5
-        """;
+                    WITH UltimoCluster AS (
+                        SELECT id_usuario, cluster_id,
+                               ROW_NUMBER() OVER(PARTITION BY id_usuario ORDER BY fecha_asignacion DESC) as rn
+                        FROM USUARIO_CLUSTER_HISTORICO
+                    )
+                    SELECT v.id_ruta, rd.ciudad_origen, rd.ciudad_destino, COUNT(r.id_reserva) as frec, SUM(r.monto_total_pagado) as ingreso
+                    FROM RESERVA r
+                    JOIN VIAJE_PROGRAMADO v ON r.id_viaje = v.id_viaje
+                    JOIN RUTA_DESTINO rd ON v.id_ruta = rd.id_ruta
+                    JOIN UltimoCluster uc ON r.id_usuario = uc.id_usuario
+                    WHERE uc.rn = 1 AND uc.cluster_id = ? AND r.estado_reserva <> 'CANCELADA'
+                    GROUP BY v.id_ruta, rd.ciudad_origen, rd.ciudad_destino
+                    ORDER BY frec DESC
+                    LIMIT 5
+                """;
 
-        List<RutaFrecuente> frecuentes = jdbcTemplate.query(sql, (rs, rowNum) -> 
-            RutaFrecuente.builder()
+        List<RutaFrecuente> frecuentes = jdbcTemplate.query(sql, (rs, rowNum) -> RutaFrecuente.builder()
                 .idRuta(rs.getInt("id_ruta"))
                 .descripcion(rs.getString("ciudad_origen") + " → " + rs.getString("ciudad_destino"))
                 .frecuencia(rs.getLong("frec"))
                 .ingresoTotal(rs.getBigDecimal("ingreso"))
-                .build()
-        , clusterId);
+                .build(), clusterId);
 
         Map<Integer, String> etiquetas = clusterCalculadorService.inferirEtiquetasClusters();
-        
+
         // Obtener reglas asociadas a estas rutas principales
         List<ReglaAsociacionEnriquecida> todasReglas = obtenerReglasAsociacion(50, "lift");
         List<ReglaAsociacionEnriquecida> reglasRelevantes = todasReglas.stream()
-            .filter(r -> r.getAntecedentes().stream().anyMatch(a -> frecuentes.stream().anyMatch(f -> f.getIdRuta().equals(a.getIdRuta()))))
-            .limit(5)
-            .toList();
+                .filter(r -> r.getAntecedentes().stream()
+                        .anyMatch(a -> frecuentes.stream().anyMatch(f -> f.getIdRuta().equals(a.getIdRuta()))))
+                .limit(5)
+                .toList();
 
         return RutasPorClusterResponse.builder()
                 .clusterId(clusterId)
@@ -404,7 +420,7 @@ public class GerencialService {
                 }
                 return entity;
             }).toList();
-            
+
             reglaAsociacionCacheRepository.saveAll(entities);
             log.info("[BI] Actualizadas {} reglas de asociación.", entities.size());
             actualizarSnapshot();
@@ -417,21 +433,24 @@ public class GerencialService {
     public void ejecutarResegmentacionMasiva() {
         log.info("[BI] Iniciando resegmentación masiva (CU11) con batching");
         int pageSize = 50;
-        org.springframework.data.domain.Page<Usuario> pagina = usuarioRepository.findAll(org.springframework.data.domain.PageRequest.of(0, pageSize));
+        org.springframework.data.domain.Page<Usuario> pagina = usuarioRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(0, pageSize));
         int procesados = 0;
-        
+
         java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(10);
-        
+
         try {
             while (!pagina.isEmpty()) {
                 List<java.util.concurrent.CompletableFuture<Void>> futures = pagina.getContent().stream()
-                    .map(u -> java.util.concurrent.CompletableFuture.runAsync(() -> actualizarClusterDeUsuario(u.getId()), executor))
-                    .toList();
-                
-                java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+                        .map(u -> java.util.concurrent.CompletableFuture
+                                .runAsync(() -> actualizarClusterDeUsuario(u.getId()), executor))
+                        .toList();
+
+                java.util.concurrent.CompletableFuture
+                        .allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
                 procesados += pagina.getNumberOfElements();
                 log.info("[BI] Procesados {} usuarios para segmentación...", procesados);
-                
+
                 if (pagina.hasNext()) {
                     pagina = usuarioRepository.findAll(pagina.nextPageable());
                 } else {
@@ -441,18 +460,18 @@ public class GerencialService {
         } finally {
             executor.shutdown();
         }
-        
+
         log.info("[BI] Segmentación completada para {} usuarios.", procesados);
         actualizarSnapshot();
     }
-    
+
     @Transactional
     public void actualizarClusterDeUsuario(Integer idUsuario) {
         Timer.Sample sample = Timer.start(meterRegistry);
         try {
             Map<String, Object> features = clusterCalculadorService.calcularCaracteristicasUsuario(idUsuario);
             // Solo segmentar si tiene al menos algo de gasto o reservas
-            if (((BigDecimal)features.get("total_gastado")).compareTo(BigDecimal.ZERO) > 0) {
+            if (((BigDecimal) features.get("total_gastado")).compareTo(BigDecimal.ZERO) > 0) {
                 CU11SegmentarResponse response = motorIaClient.segmentarUsuario(features);
                 if (response != null && response.getCluster() != null) {
                     UsuarioClusterHistorico hist = new UsuarioClusterHistorico();
@@ -463,7 +482,7 @@ public class GerencialService {
                     hist.setRutasDistintas((Integer) features.get("rutas_distintas"));
                     hist.setPromedioPasajeros((BigDecimal) features.get("promedio_pasajeros"));
                     hist.setFechaAsignacion(LocalDateTime.now());
-                    
+
                     usuarioClusterHistoricoRepository.save(hist);
                     meterRegistry.counter("bi.segmentacion.exito").increment();
                 } else {
@@ -481,7 +500,7 @@ public class GerencialService {
     private void actualizarSnapshot() {
         // Implementación simplificada del snapshot creation logic
         LocalDate hoy = LocalDate.now();
-        
+
         // Comprobar si ya existe uno hoy, si es así lo actualizamos, si no lo creamos.
         DashboardKpiSnapshot snapshot = dashboardKpiSnapshotRepository.findByFechaSnapshot(hoy)
                 .orElseGet(() -> {
@@ -490,30 +509,33 @@ public class GerencialService {
                     s.setFechaCreacion(LocalDateTime.now());
                     return s;
                 });
-        
+
         long totalUsuarios = usuarioRepository.count();
-        long segmentados = jdbcTemplate.queryForObject("SELECT COUNT(DISTINCT id_usuario) FROM USUARIO_CLUSTER_HISTORICO", Long.class);
-        
+        long segmentados = jdbcTemplate
+                .queryForObject("SELECT COUNT(DISTINCT id_usuario) FROM USUARIO_CLUSTER_HISTORICO", Long.class);
+
         snapshot.setTotalUsuarios((int) totalUsuarios);
         snapshot.setTotalUsuariosSegmentados((int) segmentados);
-        
+
         // Lógica mockeada para los JSONB para acelerar MVP
         snapshot.setDistribucionClusters("{\"0\": 10, \"1\": 20, \"2\": 5}");
         snapshot.setIngresoPorCluster("{\"0\": 500.0, \"1\": 2000.0, \"2\": 5000.0}");
         snapshot.setConversionPorCluster("{\"0\": 0.5, \"1\": 0.6, \"2\": 0.8}");
-        
+
         List<ReglaAsociacionCache> reglas = reglaAsociacionCacheRepository.findAllByOrderByLiftDesc();
         snapshot.setTotalReglasAsociacion(reglas.size());
-        
+
         long reglasAltoLift = reglas.stream().filter(r -> r.getLift().compareTo(new BigDecimal("1.2")) > 0).count();
         snapshot.setReglasAltoLiftCount((int) reglasAltoLift);
-        
-        double avgSupport = reglas.stream().limit(20).mapToDouble(r -> r.getSoporte().doubleValue()).average().orElse(0.0);
+
+        double avgSupport = reglas.stream().limit(20).mapToDouble(r -> r.getSoporte().doubleValue()).average()
+                .orElse(0.0);
         snapshot.setSupportPromedioTop20(new BigDecimal(avgSupport).setScale(6, RoundingMode.HALF_UP));
-        
-        long indiceCross = reglas.stream().filter(r -> r.getConfianza().compareTo(new BigDecimal("0.5")) > 0 && r.getLift().compareTo(new BigDecimal("1.2")) > 0).count();
+
+        long indiceCross = reglas.stream().filter(r -> r.getConfianza().compareTo(new BigDecimal("0.5")) > 0
+                && r.getLift().compareTo(new BigDecimal("1.2")) > 0).count();
         snapshot.setIndiceCrossSelling((int) indiceCross);
-        
+
         dashboardKpiSnapshotRepository.save(snapshot);
     }
 }
