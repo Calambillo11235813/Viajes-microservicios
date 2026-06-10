@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 
 	"automatizacion_auditoria/internal/blockchain"
 	"automatizacion_auditoria/internal/pdf"
@@ -15,11 +17,29 @@ import (
 	"automatizacion_auditoria/internal/webhooks"
 )
 
-// HandlePaymentSuccessTask procesa la tarea tasks:pago_exitoso:
-// PDF → Telegram → Blockchain → S3.
-func HandlePaymentSuccessTask(ctx context.Context, t *asynq.Task) error {
+const telegramSentKeyPrefix = "pago_exitoso:telegram:"
+const telegramSentTTL = 30 * 24 * time.Hour
+
+// PaymentHandler procesa la tarea tasks:pago_exitoso.
+type PaymentHandler struct {
+	redis *redis.Client
+}
+
+// NewPaymentHandler crea el handler con las dependencias necesarias.
+func NewPaymentHandler(redisClient *redis.Client) *PaymentHandler {
+	return &PaymentHandler{redis: redisClient}
+}
+
+// HandlePaymentSuccessTask ejecuta el pipeline PDF → Telegram → Blockchain → S3.
+// Si Telegram ya se envió en un intento previo, los reintentos omiten ese paso.
+func (h *PaymentHandler) HandlePaymentSuccessTask(ctx context.Context, t *asynq.Task) error {
 	taskID := resolveObjectID(ctx)
-	log.Printf("[pago_exitoso] iniciando tarea id=%s", taskID)
+	retryCount, _ := asynq.GetRetryCount(ctx)
+	if retryCount > 0 {
+		log.Printf("[pago_exitoso] reintento #%d id=%s", retryCount, taskID)
+	} else {
+		log.Printf("[pago_exitoso] iniciando tarea id=%s", taskID)
+	}
 
 	var payload map[string]interface{}
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
@@ -37,12 +57,9 @@ func HandlePaymentSuccessTask(ctx context.Context, t *asynq.Task) error {
 	}
 	log.Printf("[pago_exitoso] PDF generado correctamente id=%s bytes=%d", taskID, len(pdfBytes))
 
-	log.Printf("[pago_exitoso] enviando PDF a Telegram via n8n id=%s", taskID)
-	if err := webhooks.SendPDFToTelegram(pdfBytes, "boleto.pdf"); err != nil {
-		log.Printf("[pago_exitoso] ERROR enviando a Telegram id=%s: %v", taskID, err)
-		return fmt.Errorf("enviar boleto a Telegram via n8n: %w", err)
+	if err := h.sendTelegramIfNeeded(ctx, taskID, pdfBytes); err != nil {
+		return err
 	}
-	log.Printf("[pago_exitoso] PDF enviado a Telegram correctamente id=%s", taskID)
 
 	log.Printf("[pago_exitoso] calculando hash SHA-256 id=%s", taskID)
 	hashHex, err := blockchain.CalculateSHA256(pdfBytes)
@@ -75,6 +92,47 @@ func HandlePaymentSuccessTask(ctx context.Context, t *asynq.Task) error {
 
 	log.Printf("[pago_exitoso] tarea completada exitosamente id=%s", taskID)
 	return nil
+}
+
+func (h *PaymentHandler) sendTelegramIfNeeded(ctx context.Context, taskID string, pdfBytes []byte) error {
+	sent, err := h.isTelegramSent(ctx, taskID)
+	if err != nil {
+		log.Printf("[pago_exitoso] advertencia verificando envio previo a Telegram id=%s: %v", taskID, err)
+	}
+
+	if sent {
+		log.Printf("[pago_exitoso] Telegram ya enviado en intento previo, omitiendo reenvio id=%s", taskID)
+		return nil
+	}
+
+	log.Printf("[pago_exitoso] enviando PDF a Telegram via n8n id=%s", taskID)
+	if err := webhooks.SendPDFToTelegram(pdfBytes, "boleto.pdf"); err != nil {
+		log.Printf("[pago_exitoso] ERROR enviando a Telegram id=%s: %v", taskID, err)
+		return fmt.Errorf("enviar boleto a Telegram via n8n: %w", err)
+	}
+
+	if err := h.markTelegramSent(ctx, taskID); err != nil {
+		log.Printf("[pago_exitoso] advertencia marcando Telegram como enviado id=%s: %v", taskID, err)
+	}
+
+	log.Printf("[pago_exitoso] PDF enviado a Telegram correctamente id=%s", taskID)
+	return nil
+}
+
+func (h *PaymentHandler) telegramSentKey(taskID string) string {
+	return telegramSentKeyPrefix + taskID
+}
+
+func (h *PaymentHandler) isTelegramSent(ctx context.Context, taskID string) (bool, error) {
+	n, err := h.redis.Exists(ctx, h.telegramSentKey(taskID)).Result()
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}
+
+func (h *PaymentHandler) markTelegramSent(ctx context.Context, taskID string) error {
+	return h.redis.Set(ctx, h.telegramSentKey(taskID), "1", telegramSentTTL).Err()
 }
 
 func resolveObjectID(ctx context.Context) string {

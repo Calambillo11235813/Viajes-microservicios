@@ -4,14 +4,16 @@
  * Centraliza la dirección IP y puertos para los diferentes microservicios.
  * Si pruebas desde un dispositivo físico (Android/iOS), cambia LOCAL_IP
  * por la dirección IP de tu computadora en la red local.
+ * Debe coincidir con REACT_NATIVE_PACKAGER_HOSTNAME en el archivo .env
+ * (para que Metro/Expo muestre tu IP en lugar de localhost:8081).
  */
 
-// Cambia esta IP por la de tu computadora
+// Cambia esta IP por la de tu computadora (y actualiza .env con la misma IP)
 const LOCAL_IP = '192.168.0.3';
 
 export const CONFIG = {
   // Microservicio A: Spring Boot (GraphQL - Transaccional)
-  GRAPHQL_URL: `http://${LOCAL_IP}:9090/graphql`,
+  GRAPHQL_URL: `http://${LOCAL_IP}:8080/graphql`,
 
   // Microservicio B: Django (Motor IA)
   AI_BASE_URL: `http://${LOCAL_IP}:8000`,

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 )
 
 // Config centraliza las variables de entorno del microservicio.
@@ -18,6 +19,7 @@ type Config struct {
 	RedisUsername         string
 	RedisPassword         string
 	RedisUseTLS           bool
+	BoletosEmitirChannel  string
 	N8NTelegramWebhookURL string
 	AWSRegion             string
 	S3BucketName          string
@@ -51,6 +53,7 @@ func Load() *Config {
 			RedisUsername:          os.Getenv("REDIS_USERNAME"),
 			RedisPassword:          os.Getenv("REDIS_PASSWORD"),
 			RedisUseTLS:            redisUseTLS(redisAddr),
+			BoletosEmitirChannel:   getEnv("BOLETOS_EMITIR_CHANNEL", "boletos.emitir"),
 			N8NTelegramWebhookURL:  os.Getenv("N8N_TELEGRAM_WEBHOOK_URL"),
 			AWSRegion: firstNonEmpty(
 				strings.TrimSpace(os.Getenv("AWS_REGION")),
@@ -112,4 +115,18 @@ func (c *Config) AsynqRedisClientOpt() asynq.RedisClientOpt {
 		opt.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
 	}
 	return opt
+}
+
+// RedisClient construye un cliente go-redis (usado para suscripción Pub/Sub),
+// reutilizando la misma dirección, autenticación y TLS que Asynq.
+func (c *Config) RedisClient() *redis.Client {
+	opt := &redis.Options{
+		Addr:     c.RedisAddr,
+		Username: c.RedisUsername,
+		Password: c.RedisPassword,
+	}
+	if c.RedisUseTLS {
+		opt.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+	}
+	return redis.NewClient(opt)
 }

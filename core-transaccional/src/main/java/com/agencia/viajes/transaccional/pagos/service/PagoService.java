@@ -36,6 +36,7 @@ public class PagoService {
     private final BoletoAsientoRepository boletoAsientoRepository;
     private final PagoRepository pagoRepository;
     private final PagoConfirmadoEventPublisher pagoConfirmadoEventPublisher;
+    private final com.agencia.viajes.transaccional.pagos.event.BoletosEmitirEventPublisher boletosEmitirEventPublisher;
     private final TarifaViajeService tarifaViajeService;
 
     /**
@@ -76,7 +77,12 @@ public class PagoService {
 
             Pago pago = crearPagoConfirmado(reserva, metodoPagoUsado, montoTransaccion, cuponDescuentoAplicado);
             confirmarReservaYBoletos(reserva);
-            registrarEventoDespuesDelCommit(pago);
+
+            // El payload de boletos se construye aquí, dentro de la transacción,
+            // para que las asociaciones LAZY (usuario, viaje, ruta) sigan disponibles.
+            String boletosEmitirPayload = boletosEmitirEventPublisher.construirPayload(
+                    pago, boletoAsientoRepository.findByReservaId(reserva.getId()));
+            registrarEventoDespuesDelCommit(pago, boletosEmitirPayload);
 
             return mapearRespuesta(pago);
         } catch (IllegalArgumentException e) {
@@ -172,7 +178,7 @@ public class PagoService {
         }
     }
 
-    private void registrarEventoDespuesDelCommit(Pago pago) {
+    private void registrarEventoDespuesDelCommit(Pago pago, String boletosEmitirPayload) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -181,6 +187,12 @@ public class PagoService {
                 } catch (Exception e) {
                     // Redis puede no estar disponible; el pago ya fue confirmado en BD.
                     System.err.println("[WARN] No se pudo publicar evento de pago a Redis: " + e.getMessage());
+                }
+                try {
+                    boletosEmitirEventPublisher.publicar(boletosEmitirPayload);
+                } catch (Exception e) {
+                    // La emisión de boletos no debe afectar el pago ya confirmado.
+                    System.err.println("[WARN] No se pudo publicar evento de boletos a Redis: " + e.getMessage());
                 }
             }
         });
