@@ -12,10 +12,15 @@ import os
 import tempfile
 
 from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from celery.result import AsyncResult
 
-from .services import generar_reel
+from .tasks import generar_reel_task
 
 # Tipos MIME permitidos
 TIPOS_VIDEO_VALIDOS = {
@@ -133,41 +138,35 @@ def generar_reel_view(request) -> JsonResponse:
             status=500,
         )
 
-    # ── Invocar servicio de IA ───────────────────────────────────────
-    directorio_salida = os.path.join(settings.MEDIA_ROOT, 'reels')
+    # ── Invocar servicio de IA de manera asíncrona ───────────────────
     try:
-        resultado = generar_reel(
+        task = generar_reel_task.delay(
             ruta_video=ruta_video,
             ruta_audio=ruta_audio,
-            directorio_salida=directorio_salida,
             duracion_reel=duracion_reel,
             duracion_clip=duracion_clip,
         )
-    except ValueError as e:
-        return JsonResponse({'error': str(e)}, status=422)
-    except FileNotFoundError as e:
-        return JsonResponse({'error': str(e)}, status=400)
-    except RuntimeError as e:
-        return JsonResponse({'error': str(e)}, status=500)
-    finally:
-        # Limpiar archivos temporales
-        for ruta in [ruta_video, ruta_audio]:
-            try:
-                os.remove(ruta)
-            except OSError:
-                pass
-
-    # ── Construir URL de descarga ────────────────────────────────────
-    nombre_archivo = resultado['nombre_archivo']
-    url_descarga = f"{settings.MEDIA_URL}reels/{nombre_archivo}"
+    except Exception as e:
+        return JsonResponse({'error': f'Error al iniciar la tarea asíncrona: {e}'}, status=500)
 
     return JsonResponse({
         'exito': True,
-        'mensaje': 'Reel generado exitosamente.',
-        'duracion_reel': resultado['duracion_reel'],
-        'clips_seleccionados': resultado['clips_seleccionados'],
-        'clips_analizados': resultado['clips_analizados'],
-        'fragmentos': resultado['fragmentos'],
-        'archivo_descarga': url_descarga,
-        'tiempos_procesamiento': resultado.get('tiempos_procesamiento'),
-    })
+        'mensaje': 'La generación del reel ha comenzado en segundo plano.',
+        'job_id': task.id
+    }, status=202)
+
+class JobStatusView(APIView):
+    """Vista para consultar el estado de la tarea de generación de reels."""
+    def get(self, request, job_id):
+        result = AsyncResult(job_id)
+        if result.ready():
+            if result.successful():
+                # result.result contiene el diccionario retornado por la tarea
+                return Response(result.result, status=200)
+            else:
+                return Response({
+                    'status': 'failed',
+                    'error': str(result.info)
+                }, status=500)
+        else:
+            return Response({'status': 'pending'}, status=202)

@@ -21,6 +21,7 @@ from django.urls import include, path
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from motor_ia import views
 
 @csrf_exempt
 def home_view(request):
@@ -40,6 +41,7 @@ def home_view(request):
 urlpatterns = [
     path('', home_view),
     path('admin/', admin.site.urls),
+    path('api/health/', views.health_check, name='health_check'),
     path('api/predict/', include('api_destinos.urls')),
     path('api/generar-reel/', include('api_reels.urls')),
     path('api/traducir-imagen/', include('api_traductor.urls')),
