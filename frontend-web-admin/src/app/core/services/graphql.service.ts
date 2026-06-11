@@ -5,6 +5,7 @@ import { RutaDestino, ViajeDisponible, ReporteVentas, Flota, PaginaViajes, Asien
 import { AuthService } from './auth';
 import { Router } from '@angular/router';
 import { appLog } from '../utils/logger';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class GraphqlService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private router = inject(Router);
-  private readonly API_URL = 'http://localhost:8080/graphql';
+  private readonly API_URL = environment.graphqlUrl;
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
