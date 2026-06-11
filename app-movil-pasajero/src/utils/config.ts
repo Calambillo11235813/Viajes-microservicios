@@ -8,16 +8,22 @@
  * (para que Metro/Expo muestre tu IP en lugar de localhost:8081).
  */
 
-// Cambia esta IP por la de tu computadora (y actualiza .env con la misma IP)
-const LOCAL_IP = '192.168.0.3';
+// IP de tu computadora para el Core Transaccional (Spring Boot)
+const CORE_IP = '192.168.0.3';
+
+// IP de la máquina virtual en Google Cloud para el Motor de IA (Django)
+// REEMPLAZA esta IP con la IP Externa que te dio Google Cloud:
+const IA_IP = '34.75.80.130';
+// Recuerda que en el docker-compose de GCP expusimos la IA en el puerto 8080
+const IA_PORT = '8080';
 
 export const CONFIG = {
   // Microservicio A: Spring Boot (GraphQL - Transaccional)
-  GRAPHQL_URL: `http://${LOCAL_IP}:8080/graphql`,
+  GRAPHQL_URL: `http://${CORE_IP}:8080/graphql`,
 
-  // Microservicio B: Django (Motor IA)
-  AI_BASE_URL: `http://${LOCAL_IP}:8000`,
-  AI_API_URL: `http://${LOCAL_IP}:8000/api/predict/`,
-  AI_REEL_URL: `http://${LOCAL_IP}:8000/api/generar-reel/`,
-  AI_TRANSLATE_URL: `http://${LOCAL_IP}:8000/api/traducir-imagen/`,
+  // Microservicio B: Django (Motor IA en la Nube)
+  AI_BASE_URL: `http://${IA_IP}:${IA_PORT}`,
+  AI_API_URL: `http://${IA_IP}:${IA_PORT}/api/predict/`,
+  AI_REEL_URL: `http://${IA_IP}:${IA_PORT}/api/generar-reel/`,
+  AI_TRANSLATE_URL: `http://${IA_IP}:${IA_PORT}/api/traducir-imagen/`,
 };

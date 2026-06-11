@@ -126,6 +126,9 @@ export default function GenerarReelScreen() {
       formData.append('duracion_clip', '10');
 
       // 2. Enviar al Motor IA (sin Content-Type manual — RN agrega boundary)
+      // NOTA SOBRE EL TIMEOUT: React Native usando 'fetch' crudo NO tiene un timeout por defecto,
+      // por lo que esperará pacientemente (hasta que el sistema operativo corte la conexión, 
+      // lo cual suele ser > 2 minutos). Es perfecto para nuestro proceso síncrono.
       const response = await fetch(CONFIG.AI_REEL_URL, {
         method: 'POST',
         body: formData,
@@ -145,7 +148,13 @@ export default function GenerarReelScreen() {
       }
 
       // 3. Construir URL completa del reel generado
-      const urlReel = `${CONFIG.AI_BASE_URL}${json.archivo_descarga}`;
+      // SOLUCIÓN AL WARNING DE S3: Si la URL ya empieza con http (como las de Amazon S3), 
+      // la usamos directamente. Si es relativa (como /media/...), le pegamos la IP base.
+      const archivoDescarga = json.archivo_descarga;
+      const urlReel = archivoDescarga.startsWith('http') 
+        ? archivoDescarga 
+        : `${CONFIG.AI_BASE_URL}${archivoDescarga}`;
+        
       setReelResultUrl(urlReel);
 
       setEstadisticas({

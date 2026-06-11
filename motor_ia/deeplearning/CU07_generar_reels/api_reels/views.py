@@ -9,18 +9,14 @@ Endpoint: POST /api/generar-reel/
 """
 
 import os
-import tempfile
 
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from celery.result import AsyncResult
 
-from .tasks import generar_reel_task
+from .services import generar_reel
 
 # Tipos MIME permitidos
 TIPOS_VIDEO_VALIDOS = {
@@ -138,35 +134,45 @@ def generar_reel_view(request) -> JsonResponse:
             status=500,
         )
 
-    # ── Invocar servicio de IA de manera asíncrona ───────────────────
+    # ── Invocar servicio de IA de manera SÍNCRONA ───────────────────
     try:
-        task = generar_reel_task.delay(
+        resultado = generar_reel(
             ruta_video=ruta_video,
             ruta_audio=ruta_audio,
+            directorio_salida=directorio_tmp,
             duracion_reel=duracion_reel,
             duracion_clip=duracion_clip,
         )
+        
+        # Guardar en Storage
+        nombre_archivo = resultado['nombre_archivo']
+        ruta_local_generada = resultado['ruta_archivo']
+
+        with open(ruta_local_generada, 'rb') as f:
+            video_bytes = f.read()
+        
+        path_en_storage = default_storage.save(f'reels/{nombre_archivo}', ContentFile(video_bytes))
+        url_descarga = default_storage.url(path_en_storage)
+        
+        # Comentado a petición: no limpiamos el archivo local para poder verlo en la carpeta
+        # os.remove(ruta_local_generada)
+
+        return JsonResponse({
+            'exito': True,
+            'mensaje': 'Reel generado exitosamente.',
+            'archivo_descarga': url_descarga,
+            'duracion_reel': resultado['duracion_reel'],
+            'clips_seleccionados': resultado['clips_seleccionados'],
+            'clips_analizados': resultado['clips_analizados'],
+            'tiempos_procesamiento': resultado.get('tiempos_procesamiento'),
+        }, status=200)
+
     except Exception as e:
-        return JsonResponse({'error': f'Error al iniciar la tarea asíncrona: {e}'}, status=500)
-
-    return JsonResponse({
-        'exito': True,
-        'mensaje': 'La generación del reel ha comenzado en segundo plano.',
-        'job_id': task.id
-    }, status=202)
-
-class JobStatusView(APIView):
-    """Vista para consultar el estado de la tarea de generación de reels."""
-    def get(self, request, job_id):
-        result = AsyncResult(job_id)
-        if result.ready():
-            if result.successful():
-                # result.result contiene el diccionario retornado por la tarea
-                return Response(result.result, status=200)
-            else:
-                return Response({
-                    'status': 'failed',
-                    'error': str(result.info)
-                }, status=500)
-        else:
-            return Response({'status': 'pending'}, status=202)
+        return JsonResponse({'error': f'Error al generar el reel: {e}'}, status=500)
+    finally:
+        # Limpiar archivos temporales de entrada
+        for ruta in [ruta_video, ruta_audio]:
+            try:
+                os.remove(ruta)
+            except OSError:
+                pass

@@ -8,5 +8,4 @@ app_name = 'api_reels'
 
 urlpatterns = [
     path('', views.generar_reel_view, name='generar_reel'),
-    path('job/<str:job_id>/', views.JobStatusView.as_view(), name='job_status'),
 ]
