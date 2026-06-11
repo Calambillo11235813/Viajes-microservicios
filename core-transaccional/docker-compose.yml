@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  core-transaccional:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: core-transaccional:latest
+    container_name: core-transaccional
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT:-9090}:${SERVER_PORT:-9090}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${SERVER_PORT:-9090}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 512M

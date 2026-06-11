@@ -1,8 +1,33 @@
+# Build artifacts (se compila dentro del contenedor con multi-stage)
+build/
 .gradle/
+
+# IDE
 .idea/
 .vscode/
-build/
-!build/libs/*.jar
+*.iml
+*.iws
+*.ipr
+
+# Environment (secretos NO van en la imagen)
 .env
-.env.*
+.env.local
+.env.*.local
+
+# Logs y archivos temporales
 *.log
+*.class
+debug.log
+
+# Docs y scripts auxiliares
+docs/
+*.md
+DropSchema.java
+DropSchema.class
+RunMigrations.java
+RunMigrations.class
+
+# Git
+.git/
+.gitignore
+.gitattributes

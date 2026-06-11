@@ -71,9 +71,10 @@ task cleanDatabase {
 		def driverClass = classLoader.loadClass("org.postgresql.Driver")
 		def driver = driverClass.getDeclaredConstructor().newInstance()
 		def props = new java.util.Properties()
-		props.setProperty("user", "postgres")
-		props.setProperty("password", "nicolas123")
-		def conn = driver.connect("jdbc:postgresql://localhost:5432/core_transaccional_db", props)
+		props.setProperty("user", System.getenv("DB_USERNAME") ?: "postgres")
+		props.setProperty("password", System.getenv("DB_PASSWORD") ?: "")
+		def dbUrl = System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5432/core_transaccional_db"
+		def conn = driver.connect(dbUrl, props)
 		def stmt = conn.createStatement()
 		stmt.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
 		stmt.close()
