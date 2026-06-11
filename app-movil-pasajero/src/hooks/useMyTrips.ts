@@ -48,7 +48,7 @@ export const useMyTrips = () => {
   const { data, loading, error, refetch } = useQuery<ConsultarHistorialViajesData>(
     CONSULTAR_HISTORIAL_VIAJES,
     {
-      variables: { idUsuario, pagina: 0, tamanio: 100 },
+      variables: { idUsuario, pagina: 0, tamanio: 250 },
       skip: !idUsuario,
       fetchPolicy: 'cache-and-network',
     }

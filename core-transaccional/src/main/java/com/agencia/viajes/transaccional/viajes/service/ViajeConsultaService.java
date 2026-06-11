@@ -1,7 +1,6 @@
 package com.agencia.viajes.transaccional.viajes.service;
 
 import com.agencia.viajes.transaccional.flotas.model.Flota;
-import com.agencia.viajes.transaccional.navegacion.service.NavegacionService;
 import com.agencia.viajes.transaccional.rutas.model.RutaDestino;
 import com.agencia.viajes.transaccional.viajes.dto.PaginaViajesResponse;
 import com.agencia.viajes.transaccional.viajes.dto.ViajeDisponibleResponse;
@@ -25,7 +24,6 @@ public class ViajeConsultaService {
 
     private final ViajeProgramadoRepository viajeProgramadoRepository;
     private final TarifaViajeService tarifaViajeService;
-    private final NavegacionService navegacionService;
 
     /**
      * Consulta viajes programados por origen, destino y fecha (paginado).
@@ -33,7 +31,7 @@ public class ViajeConsultaService {
      * @param origen ciudad de salida.
      * @param destino ciudad de llegada.
      * @param fecha fecha calendario de salida.
-     * @param idUsuario identificador del usuario para tracking en DynamoDB (opcional).
+     * @param idUsuario identificador del usuario (opcional, reservado para futuros filtros).
      * @param pagina número de página.
      * @param tamanio tamaño de la página.
      * @return viajes disponibles ordenados por hora de salida.
@@ -59,9 +57,6 @@ public class ViajeConsultaService {
         var contenido = page.getContent().stream()
                 .map(this::mapearRespuesta)
                 .toList();
-
-        navegacionService.registrarBusquedaRutaAsync(
-                idUsuario, origen.trim(), destino.trim(), fecha, (int) page.getTotalElements());
 
         return new PaginaViajesResponse(
                 contenido,

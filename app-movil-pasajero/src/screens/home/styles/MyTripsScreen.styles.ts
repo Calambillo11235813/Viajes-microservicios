@@ -12,6 +12,36 @@ export const styles = StyleSheet.create({
     padding: SPACING.md,
     paddingBottom: SPACING.xxl,
   },
+  filterContainer: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.sm,
+    backgroundColor: COLORS.background,
+  },
+  filterButton: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+  },
+  filterButtonActive: {
+    borderColor: COLORS.secondary,
+    backgroundColor: COLORS.secondary,
+  },
+  filterButtonText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontWeight: '700',
+  },
+  filterButtonTextActive: {
+    color: COLORS.textLight,
+  },
   card: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,
@@ -108,7 +138,25 @@ export const styles = StyleSheet.create({
   },
   cardFooter: {
     marginTop: SPACING.sm,
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  feedbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    backgroundColor: COLORS.accent,
+    borderRadius: 8,
+  },
+  feedbackButtonText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textLight,
+    fontWeight: '700',
   },
   cancelButton: {
     paddingVertical: SPACING.xs,

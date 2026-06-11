@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMyTrips, ViajeConsolidado } from '@/hooks/useMyTrips';
+import { useTripFeedback } from '@/hooks/useTripFeedback';
+import TripFeedbackModal, { TripFeedbackSubmit } from '@/components/TripFeedbackModal';
 import { COLORS, TYPOGRAPHY, globalStyles } from '@/theme/theme';
 import { styles } from './styles/MyTripsScreen.styles';
+
+type FiltroViajes = 'CONFIRMADA' | 'COMPLETADA';
 
 function formatearFecha(iso: string): string {
   const fecha = new Date(iso);
@@ -22,20 +26,58 @@ function formatearHora(iso: string): string {
   return fecha.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
 }
 
+function esViajeCalificable(viaje: ViajeConsolidado): boolean {
+  if (viaje.estadoReserva === 'CANCELADA') return false;
+  if (viaje.estadoReserva === 'COMPLETADA') return true;
+
+  const llegada = new Date(viaje.fechaHoraLlegada);
+  const yaTermino = !Number.isNaN(llegada.getTime()) && llegada.getTime() < Date.now();
+  return viaje.estadoReserva === 'CONFIRMADA' && yaTermino;
+}
+
 export default function MyTripsScreen() {
   const { viajes, loading, error, refetch, cancelarReserva, cancelLoading } = useMyTrips();
+  const {
+    feedbackLoading,
+    cargarFeedbackEnviado,
+    feedbackYaEnviado,
+    registrarFeedback,
+  } = useTripFeedback();
+  const [viajeFeedback, setViajeFeedback] = useState<ViajeConsolidado | null>(null);
+  const [filtroViajes, setFiltroViajes] = useState<FiltroViajes>('COMPLETADA');
+
+  const viajesFiltrados = viajes.filter((viaje) => viaje.estadoReserva === filtroViajes);
+  const totalConfirmados = viajes.filter((viaje) => viaje.estadoReserva === 'CONFIRMADA').length;
+  const totalCompletados = viajes.filter((viaje) => viaje.estadoReserva === 'COMPLETADA').length;
+
+  useEffect(() => {
+    cargarFeedbackEnviado(viajes.map((viaje) => viaje.idViaje));
+  }, [cargarFeedbackEnviado, viajes]);
 
   const getStatusColor = (estado: string) => {
     switch (estado) {
       case 'CONFIRMADA': return COLORS.success;
       case 'PENDIENTE': return COLORS.warning;
       case 'CANCELADA': return COLORS.danger;
+      case 'COMPLETADA': return COLORS.accent;
       default: return COLORS.secondary;
     }
   };
 
+  const handleSubmitFeedback = async (feedback: TripFeedbackSubmit): Promise<boolean> => {
+    if (!viajeFeedback) return false;
+
+    return registrarFeedback({
+      idViaje: viajeFeedback.idViaje,
+      idReserva: viajeFeedback.idsReservas[0],
+      calificacion: feedback.calificacion,
+      comentario: feedback.comentario,
+    });
+  };
+
   const renderItem = ({ item }: { item: ViajeConsolidado }) => {
     const isCancellable = item.estadoReserva === 'PENDIENTE' || item.estadoReserva === 'CONFIRMADA';
+    const canSendFeedback = esViajeCalificable(item) && !feedbackYaEnviado(item.idViaje);
 
     return (
       <View style={styles.card}>
@@ -89,15 +131,28 @@ export default function MyTripsScreen() {
           </View>
         </View>
 
-        {isCancellable && (
+        {(isCancellable || canSendFeedback) && (
           <View style={styles.cardFooter}>
-            <TouchableOpacity 
-              style={[styles.cancelButton, cancelLoading && { opacity: 0.5 }]}
-              onPress={() => cancelarReserva(item.idsReservas)}
-              disabled={cancelLoading}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar Reserva</Text>
-            </TouchableOpacity>
+            {canSendFeedback && (
+              <TouchableOpacity
+                style={[styles.feedbackButton, feedbackLoading && { opacity: 0.5 }]}
+                onPress={() => setViajeFeedback(item)}
+                disabled={feedbackLoading}
+              >
+                <Ionicons name="star" size={14} color={COLORS.textLight} />
+                <Text style={styles.feedbackButtonText}>Calificar viaje</Text>
+              </TouchableOpacity>
+            )}
+
+            {isCancellable && (
+              <TouchableOpacity
+                style={[styles.cancelButton, cancelLoading && { opacity: 0.5 }]}
+                onPress={() => cancelarReserva(item.idsReservas)}
+                disabled={cancelLoading}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar Reserva</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
@@ -125,8 +180,43 @@ export default function MyTripsScreen() {
 
   return (
     <View style={globalStyles.safeAreaContainer}>
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filtroViajes === 'COMPLETADA' && styles.filterButtonActive,
+          ]}
+          onPress={() => setFiltroViajes('COMPLETADA')}
+        >
+          <Text
+            style={[
+              styles.filterButtonText,
+              filtroViajes === 'COMPLETADA' && styles.filterButtonTextActive,
+            ]}
+          >
+            Completados ({totalCompletados})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filtroViajes === 'CONFIRMADA' && styles.filterButtonActive,
+          ]}
+          onPress={() => setFiltroViajes('CONFIRMADA')}
+        >
+          <Text
+            style={[
+              styles.filterButtonText,
+              filtroViajes === 'CONFIRMADA' && styles.filterButtonTextActive,
+            ]}
+          >
+            Confirmados ({totalConfirmados})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
-        data={viajes}
+        data={viajesFiltrados}
         keyExtractor={(item) => `${item.idViaje}-${item.estadoReserva}`}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
@@ -137,10 +227,23 @@ export default function MyTripsScreen() {
         ListEmptyComponent={
           !loading ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No tienes reservas de viajes aún.</Text>
+              <Text style={styles.emptyText}>
+                No tienes viajes {filtroViajes === 'COMPLETADA' ? 'completados' : 'confirmados'} para mostrar.
+              </Text>
             </View>
           ) : null
         }
+      />
+      <TripFeedbackModal
+        visible={viajeFeedback !== null}
+        routeLabel={
+          viajeFeedback
+            ? `${viajeFeedback.ciudadOrigen} → ${viajeFeedback.ciudadDestino}`
+            : ''
+        }
+        loading={feedbackLoading}
+        onClose={() => setViajeFeedback(null)}
+        onSubmit={handleSubmitFeedback}
       />
     </View>
   );

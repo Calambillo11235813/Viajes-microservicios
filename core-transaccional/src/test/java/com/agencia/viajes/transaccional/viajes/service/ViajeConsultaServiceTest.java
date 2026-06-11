@@ -4,12 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.agencia.viajes.transaccional.flotas.model.Flota;
-import com.agencia.viajes.transaccional.navegacion.service.NavegacionService;
 import com.agencia.viajes.transaccional.rutas.model.RutaDestino;
 import com.agencia.viajes.transaccional.viajes.model.ViajeProgramado;
 import com.agencia.viajes.transaccional.viajes.repository.ViajeProgramadoRepository;
@@ -34,22 +31,16 @@ class ViajeConsultaServiceTest {
     @Mock
     private TarifaViajeService tarifaViajeService;
 
-    @Mock
-    private NavegacionService navegacionService;
-
     @InjectMocks
     private ViajeConsultaService viajeConsultaService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        doNothing()
-                .when(navegacionService)
-                .registrarBusquedaRutaAsync(any(), any(), any(), any(), any(Integer.class));
     }
 
     @Test
-    void buscarRutasYHorariosDisponibles_registraNavegacionYRetornaResultados() {
+    void buscarRutasYHorariosDisponibles_retornaResultados() {
         LocalDate fecha = LocalDate.of(2026, 6, 7);
         ViajeProgramado viaje = crearViajeProgramadoMock();
 
@@ -65,8 +56,6 @@ class ViajeConsultaServiceTest {
 
         assertNotNull(resultados);
         assertEquals(1, resultados.contenido().size());
-        verify(navegacionService)
-                .registrarBusquedaRutaAsync(eq(1), eq("La Paz"), eq("Uyuni"), eq(fecha), eq(1));
     }
 
     private ViajeProgramado crearViajeProgramadoMock() {
