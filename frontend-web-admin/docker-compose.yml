@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  frontend-web-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CORE_IP: ${CORE_TRANSACCIONAL_IP:-18.218.178.228}
+        CORE_PORT: ${CORE_TRANSACCIONAL_PORT:-9090}
+    image: frontend-web-admin:latest
+    container_name: frontend-web-admin
+    environment:
+      - PORT=4000
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4000/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
