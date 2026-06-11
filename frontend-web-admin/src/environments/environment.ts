@@ -1,11 +1,11 @@
 /**
  * Configuración centralizada del frontend-web-admin.
  *
- * Cambia SOLO la IP/puerto aquí para apuntar a otro entorno
- * (local, EC2 producción, etc.). Todos los servicios leen de este archivo.
+ * ⚠️  Este archivo es AUTO-GENERADO por set-env.js desde el .env
+ *     NO editar manualmente. Cambia los valores en .env y ejecuta:
+ *     node set-env.js
  */
 
-// ── Core Transaccional (Spring Boot / GraphQL) ──────────────────
 const CORE_IP = '18.218.178.228';
 const CORE_PORT = '9090';
 
