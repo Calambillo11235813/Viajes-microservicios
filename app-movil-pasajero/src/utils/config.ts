@@ -19,7 +19,7 @@ const IA_PORT = '8080';
 
 export const CONFIG = {
   // Microservicio A: Spring Boot (GraphQL - Transaccional)
-  GRAPHQL_URL: `http://${CORE_IP}:8080/graphql`,
+  GRAPHQL_URL: `http://${CORE_IP}:9090/graphql`,
 
   // Microservicio B: Django (Motor IA en la Nube)
   AI_BASE_URL: `http://${IA_IP}:${IA_PORT}`,

@@ -1,0 +1,8 @@
+.gradle/
+.idea/
+.vscode/
+build/
+!build/libs/*.jar
+.env
+.env.*
+*.log
