@@ -10,4 +10,5 @@ class ApiReelsConfig(AppConfig):
 
     def ready(self) -> None:
         """Precarga el modelo MobileNetV2 al arrancar Django (Singleton)."""
-        from .model_loader import scorer  # noqa: F401 — carga el modelo al arrancar
+        # from .model_loader import scorer  # noqa: F401 — carga el modelo al arrancar
+        pass
