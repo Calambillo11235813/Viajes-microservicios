@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -62,6 +62,7 @@ type EstadoPantalla = 'inicial' | 'imagen_seleccionada' | 'analizando' | 'result
  */
 export default function BuscarImagenScreen() {
   const { registrarVisualizacionRuta } = useNavegacionTracking();
+  const screenEntryTime = useRef<number>(Date.now());
   const [estado, setEstado] = useState<EstadoPantalla>('inicial');
   const [imagenUri, setImagenUri] = useState<string | null>(null);
   const [destinoDetectado, setDestinoDetectado] = useState<DestinoDetectado | null>(null);
@@ -450,6 +451,7 @@ export default function BuscarImagenScreen() {
   );
 
   const handleSeleccionarViaje = (viaje: ViajeDisponible) => {
+    const permanencia = Math.floor((Date.now() - screenEntryTime.current) / 1000);
     void registrarVisualizacionRuta({
       idRuta: Number(viaje.idRuta),
       idRutaVista: Number(viaje.idRuta),
@@ -458,7 +460,7 @@ export default function BuscarImagenScreen() {
       ciudadOrigenVista: viaje.ciudadOrigen,
       ciudadDestinoVista: viaje.ciudadDestino,
       categoriaVista: viaje.categoriaTuristica,
-      tiempoPermanenciaSeg: 0,
+      tiempoPermanenciaSeg: permanencia,
       dispositivo: Platform.OS,
     });
 

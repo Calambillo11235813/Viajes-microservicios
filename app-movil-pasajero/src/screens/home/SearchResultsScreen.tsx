@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
 import { useQuery } from '@apollo/client/react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,6 +20,7 @@ type Props = NativeStackScreenProps<SearchStackParamList, 'SearchResults'>;
 export default function SearchResultsScreen({ route, navigation }: Props) {
   const { origen, destino, fecha } = route.params;
   const { idUsuario, registrarVisualizacionRuta } = useNavegacionTracking();
+  const screenEntryTime = useRef<number>(Date.now());
 
   const { loading, error, data, refetch } = useQuery<BuscarViajesData, BuscarViajesVars>(
     BUSCAR_VIAJES,
@@ -99,6 +100,7 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
             tipoBus={item.tipoBus}
             capacidadTotalAsientos={item.capacidadTotalAsientos}
             onPress={() => {
+              const permanencia = Math.floor((Date.now() - screenEntryTime.current) / 1000);
               void registrarVisualizacionRuta({
                 idRuta: Number(item.idRuta),
                 idRutaVista: Number(item.idRuta),
@@ -107,7 +109,7 @@ export default function SearchResultsScreen({ route, navigation }: Props) {
                 ciudadOrigenVista: item.ciudadOrigen,
                 ciudadDestinoVista: item.ciudadDestino,
                 categoriaVista: item.categoriaTuristica,
-                tiempoPermanenciaSeg: 0,
+                tiempoPermanenciaSeg: permanencia,
                 dispositivo: Platform.OS,
               });
               navigation.navigate('SeatSelection', { idViaje: item.idViaje });

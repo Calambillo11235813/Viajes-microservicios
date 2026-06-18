@@ -43,7 +43,7 @@ export function useTripFeedback() {
   const cargarFeedbackEnviado = useCallback(
     async (idViajes: Array<number | string>) => {
       if (!idUsuario || idViajes.length === 0) {
-        setSentTripIds(new Set());
+        setSentTripIds(prev => prev.size === 0 ? prev : new Set());
         return;
       }
 

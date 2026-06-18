@@ -56,7 +56,7 @@ export const useMyTrips = () => {
 
   const [cancelarReservaMutation] = useMutation<any>(CANCELAR_RESERVA);
 
-  const viajesRaw: ViajeRaw[] = data?.consultarHistorialViajes?.contenido ?? [];
+  const viajesRaw = data?.consultarHistorialViajes?.contenido;
 
   useEffect(() => {
     appLog.info('Historial', 'Usuario:', user);
@@ -91,7 +91,8 @@ export const useMyTrips = () => {
 
   const viajes = useMemo(() => {
     const map = new Map<string, ViajeConsolidado>();
-    viajesRaw.forEach(v => {
+    const raw = viajesRaw || [];
+    raw.forEach(v => {
       // Agrupar por viaje y estado para no mezclar canceladas con confirmadas
       const key = `${v.idViaje}-${v.estadoReserva}`;
       if (!map.has(key)) {

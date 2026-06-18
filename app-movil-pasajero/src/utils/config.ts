@@ -9,13 +9,13 @@
  */
 
 // IP de tu computadora para el Core Transaccional (Spring Boot)
-const CORE_IP = '192.168.0.5';
+const CORE_IP = '18.189.23.85';
 
 // IP de la máquina virtual en Google Cloud para el Motor de IA (Django)
 // REEMPLAZA esta IP con la IP Externa que te dio Google Cloud:
-const IA_IP = '34.75.80.130';
+const IA_IP = '34.24.189.255';
 // Recuerda que en el docker-compose de GCP expusimos la IA en el puerto 8080
-const IA_PORT = '8080';
+const IA_PORT = '8082';
 
 export const CONFIG = {
   // Microservicio A: Spring Boot (GraphQL - Transaccional)
