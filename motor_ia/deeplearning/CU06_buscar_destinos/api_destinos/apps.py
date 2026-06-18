@@ -7,4 +7,5 @@ class ApiDestinosConfig(AppConfig):
     verbose_name = 'CU-06 Buscar Destinos'
 
     def ready(self):
-        from .model_loader import clasificador  # noqa: F401 — carga el modelo al arrancar
+        # from .model_loader import clasificador  # noqa: F401 — carga el modelo al arrancar
+        pass
