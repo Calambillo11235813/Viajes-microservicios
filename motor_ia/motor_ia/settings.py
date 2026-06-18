@@ -182,8 +182,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GS_BUCKET_NAME = os.getenv('GCP_BUCKET_NAME')
 GS_PROJECT_ID = os.getenv('GCP_PROJECT_ID')
 
-# Celery
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'

@@ -27,6 +27,9 @@
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE",
         "android.permission.RECEIVE_BOOT_COMPLETED"
       ]
     },
@@ -43,6 +46,17 @@
           "color": "#ffffff"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "af9dfea4-1392-4c13-be08-f1ea4974116c"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/af9dfea4-1392-4c13-be08-f1ea4974116c"
+    }
   }
 }

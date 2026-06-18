@@ -9,7 +9,7 @@
  */
 
 // IP de tu computadora para el Core Transaccional (Spring Boot)
-const CORE_IP = '18.218.178.228';
+const CORE_IP = '192.168.0.5';
 
 // IP de la máquina virtual en Google Cloud para el Motor de IA (Django)
 // REEMPLAZA esta IP con la IP Externa que te dio Google Cloud:
