@@ -20,6 +20,7 @@ def predecir_ruta_recomendada(request):
                 return JsonResponse({'status': 'error', 'mensaje': 'Faltan campos: perfil_pasajero y/o categoria_preferida'}, status=400)
 
             # Verificar que los modelos estén cargados
+            Cu09RecomendacionPersonalizadaConfig.load_models()
             if (Cu09RecomendacionPersonalizadaConfig.modelo_rf is None or
                 Cu09RecomendacionPersonalizadaConfig.le_perfil is None or
                 Cu09RecomendacionPersonalizadaConfig.le_categoria is None):

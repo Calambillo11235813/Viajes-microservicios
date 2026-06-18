@@ -25,6 +25,7 @@ def segmentar_usuario(request):
         return JsonResponse({'error': 'Método no permitido. Use POST.'}, status=405)
     
     # Verificar que los modelos estén cargados
+    ApiSegmentacionConfig.load_models()
     if (ApiSegmentacionConfig.kmeans_model is None or 
         ApiSegmentacionConfig.scaler is None or
         ApiSegmentacionConfig.features is None):
@@ -75,6 +76,7 @@ def estadisticas_clusters(request):
     if request.method != 'GET':
         return JsonResponse({'error': 'Método no permitido. Use GET.'}, status=405)
     
+    ApiSegmentacionConfig.load_models()
     if ApiSegmentacionConfig.kmeans_model is None:
         return JsonResponse({'error': 'Modelos no cargados'}, status=503)
     
